@@ -1,3 +1,11 @@
+Cookie Format:
+    * Structure
+        - id + sha256 hash of id
+    * Information
+        - id: identifies the user                                       format: string
+        - sha256 hash of id: validates id has not been tampered w/      format: string
+
+
 User Data:
     * Structure
         - id
