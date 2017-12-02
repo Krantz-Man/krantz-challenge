@@ -4,29 +4,202 @@ from binascii import hexlify
 from random import choice, shuffle
 from datetime import datetime
 from time import gmtime, strftime
+from hashlib import sha512
+import json
+import sqlite3
 import requests
 
 app = Flask(__name__)
-PUZZLE_IDS = {"0702851a4492cb1de55ac59db87fce4e": 0,
-              "7401aee89c2b8989cd35c99799794a15": 0,
-              "30561bc7431486bee6780e9f844fc7b6": 0,
-              "7316d2a7132b53c6b5d81d55a42a6c60": 0,
-              "72b9f37d48677a429ba0c1db4eaf5f93": 0,
-              "e3b4ded936b613bd9cfffcfeb34fa874": 0,
-              "1739854f4d3ff2269274837a77ce0d75": 0,
-              "7c045263775a5c306f16f442ccf25226": 0,
-              "881b6f42d9cca3c08e361fe2dd5dcea8": 0,
-              "d66dcec01318c9e87c2a5be246adfa53": 0,
-              "fec66c8e8a47887eaea0bf7f5750fc85": 0,
-              "8571d2129c74ca323d46f11d4c33ecbd": 0,
-              "da3ffe61ad522cd3f897efd5f50620ac": 0,
-              "0575ffd11831ac0adbd1ef499cf69d49": 0,
-              "7da2b935a167ee54ff48c2377fc0b0a2": 0,
-              "6a668de676f70f2f3c6e146c8009dd56": 0
-              }
-USER_DATA = {}  # "test": {"pages": ["1", "2", "3", "4"], "complete": 2}}  # <- Test set
 STATISTICS = {"Players": 0, "Completions": 0, "Tamper Attempts": 0, "Finishers": {}}
 POSSIBLE_COMPLETED = 4
+ADDRESS = "127.0.0.1"
+PORT = 5000
+DEBUG = True
+
+
+# Name: Finishers
+# Purpose: access finishers table in data.db
+class Finishers(object):
+    # Name: query
+    # Purpose: query the table based off of inputs
+    # Inputs: uid as string (default: None), name as string (default: None), time as integer (default: None)
+    # Outputs: list of returned objects
+    @staticmethod
+    def query(uid):
+        # Connect to database
+        connection = sqlite3.connect("data.db")
+
+        # Get data
+        data = connection.execute("SELECT * FROM finishers WHERE id = ?", [uid]).fetchall()
+
+        # Close and return data
+        connection.close()
+        return data
+
+    # Name: insert
+    # Purpose: insert a row into the table
+    # Inputs: uid as string, name as string, time as integer
+    # Outputs:
+    @staticmethod
+    def insert(uid, name, time):
+        # Connect to database
+        connection = sqlite3.connect("data.db")
+
+        # Insert into table
+        connection.execute("INSERT INTO finishers VALUES (?, ?, ?)", [uid, name, time])
+
+        # Close connection
+        connection.commit()
+        connection.close()
+
+
+# Name: Puzzles
+# Purpose: access puzzles table in data.db
+class Puzzles(object):
+    # Name: query
+    # Purpose: query the table based off of inputs
+    # Inputs: pid as string
+    # Outputs: list of returned lists
+    @staticmethod
+    def query(pid):
+        # Connect to database
+        connection = sqlite3.connect("data.db")
+
+        # Get data
+        data = connection.execute("SELECT * FROM puzzles WHERE id = ?", [pid]).fetchall()
+
+        # Close and return data
+        connection.close()
+        return data
+
+    # Name: update
+    # Purpose: update a row in the table
+    # Inputs: pid as string
+    # Outputs:
+    @staticmethod
+    def update(pid):
+        # Connect to database
+        connection = sqlite3.connect("data.db")
+
+        # Update completions
+        prev = connection.execute("SELECT completions FROM puzzles WHERE id = ?", [pid]).fetchall()[0][0]
+        connection.execute("UPDATE puzzles SET completions = ? WHERE id = ?", [prev + 1, pid])
+
+        # Close and commit
+        connection.commit()
+        connection.close()
+
+    # Name: html
+    # Purpose: get html for specific puzzle
+    # Inputs: pid as string
+    # Outputs:
+    @staticmethod
+    def html(pid):
+        # Connect to database
+        connection = sqlite3.connect("data.db")
+
+        # Get html for given puzzle id
+        html = connection.execute("SELECT html FROM puzzles WHERE id = ?", [pid]).fetchall()[0][0]
+
+        # Close and return data
+        connection.close()
+        return html
+
+    # Name: set
+    # Purpose: get random set of puzzles
+    # Inputs:
+    # Outputs: list of puzzle ids
+    @staticmethod
+    def set():
+        # Connect to database
+        connection = sqlite3.connect("data.db")
+
+        # Get all ids
+        pids = []
+        for pid in connection.execute("SELECT id FROM puzzles").fetchall():
+            pids.append(pid[0])
+
+        # Close connection
+        connection.close()
+
+        # Get num ids
+        selected = []
+        for i in range(POSSIBLE_COMPLETED):
+            shuffle(pids)
+            c = choice(pids)
+            # Check not already chosen
+            while c in selected:
+                c = choice(pids)
+            selected.append(c)
+
+        # Return selected ids
+        return selected
+
+
+# Name: UserData
+# Purpose: access user_data table in data.db
+class UserData(object):
+    # Name: query
+    # Purpose: query the table based off of inputs
+    # Inputs: uid as string
+    # Outputs: list of returned objects
+    @staticmethod
+    def query(uid):
+        # Connect to database
+        connection = sqlite3.connect("data.db")
+
+        # Get user
+        user = connection.execute("SELECT * FROM user_data WHERE id = ?", [uid]).fetchall()[0]
+
+        # Close and return user
+        connection.close()
+        return user
+
+    # Name: insert
+    # Purpose: insert a row into the table
+    # Inputs: uid as string, pages as string, current as string time_start as integer
+    # Outputs:
+    @staticmethod
+    def insert(uid, pages, current, time_start):
+        # Connect to database
+        connection = sqlite3.connect("data.db")
+
+        # Insert into table
+        connection.execute("INSERT INTO user_data (id, pages, current, start) VALUES (?, ?, ?, ?)",
+                           [uid, pages, current, time_start])
+
+        # Commit and close connection
+        connection.commit()
+        connection.close()
+
+    # Name: update
+    # Purpose: update a row in the table
+    # Inputs: uid as string, complete as integer (default: None), end as integer (default: None), tampered as boolean (default: None)
+    # Outputs:
+    @staticmethod
+    def update(uid, complete=None, time_end=None, tampered=None):
+        # Check if user exists
+        if len(UserData.query(uid)) == 0:
+            return
+
+        # Set to previous value if not passed
+        if not complete:
+            complete = UserData.query(uid)[2]
+        if not time_end:
+            time_end = UserData.query(uid)[4]
+        if not tampered:
+            tampered = UserData.query(uid)[5]
+
+        # Connect to database
+        connection = sqlite3.connect("data.db")
+
+        # Update row
+        connection.execute("UPDATE user_data SET complete = ?, end = ?, tampered = ? WHERE id = ?",
+                           [complete, time_end, tampered, uid])
+
+        # Commit and close connection
+        connection.commit()
+        connection.close()
 
 
 # Name: send_stats
@@ -35,10 +208,10 @@ POSSIBLE_COMPLETED = 4
 # Outputs: status code
 def send_stats():
     body = "Sent on: " + (datetime.now()).strftime("%m-%d-%Y %H:%M:%S") + \
-            "\nPlay Statistics:\n\tPlayers: " + str(STATISTICS["Players"]) + \
-            "\n\tCompletions: " + str(STATISTICS["Completions"]) + \
-            "\n\tAttempted Tampers: " + str(STATISTICS["Tamper Attempts"]) + \
-            "\n\tPeople to Complete: " + str(STATISTICS["Finishers"]).replace("{", "").replace("}", "").replace("'", "")
+           "\nPlay Statistics:\n\tPlayers: " + str(STATISTICS["Players"]) + \
+           "\n\tCompletions: " + str(STATISTICS["Completions"]) + \
+           "\n\tAttempted Tampers: " + str(STATISTICS["Tamper Attempts"]) + \
+           "\n\tPeople to Complete: " + str(STATISTICS["Finishers"]).replace("{", "").replace("}", "").replace("'", "")
     a = ("api", "key-ad17fb62543c603f85282ff31b8c602d")
     d = {"from": "Game Info <mailgun@mg.alexkrantz.com>",
          "to": "krantzie124@gmail.com",
@@ -51,32 +224,30 @@ def send_stats():
 # Name: get_data_from_cookie
 # Purpose: get the data from the data cookie
 # Inputs:
-# Outputs: dictionary w/ all data
+# Outputs: list w/ all data
 def get_data_from_cookie():
     # Get and decode data in cookie
-    cookie = request.cookies.get("data")
-    cookie = jwt.decode(cookie, "959563cf6dc1dfdf2b3fef8efb82315b4493f178107b6ec79da877d789d9ae64")
+    cookie = request.cookies.get("data").split(".")
+    cookie = [cookie[0], "".join((cookie[1], cookie[2]))]
     # Return cookie dictionary
     return cookie
 
 
 # Name: verify_data
 # Purpose: check if all data checks out
-# Inputs: cookie as dict
+# Inputs: cookie as list
 # Outputs: boolean
 def verify_data(cookie):
-    try:
-        # Check if not tampered w/
-        if cookie["id"] in USER_DATA and cookie["pid"] in PUZZLE_IDS.keys() \
-                and cookie["pid"] in USER_DATA[cookie["id"]]["pages"] \
-                and cookie["pages"] == USER_DATA[cookie["id"]]["pages"] \
-                and cookie["complete"] == USER_DATA[cookie["id"]]["complete"]:
-            return True
+    # Verify uid not tampered w/
+    if sha512(cookie[0].encode()).hexdigest() != cookie[1]:
         return False
 
-    # If id invalid return invalid
-    except KeyError:
+    # Verify uid matches on in database
+    if len(UserData.query(cookie[0])) == 0:
         return False
+
+    # If no error, return true
+    return True
 
 
 # Name: create_user
@@ -85,27 +256,22 @@ def verify_data(cookie):
 # Outputs: jwt string
 def create_user():
     # Create id and default data
-    id = hexlify(urandom(16)).decode()
-    USER_DATA[id] = {"complete": 0, "pages": [], "pid": None, "start": 0, "end": 0}
+    uid = hexlify(urandom(16)).decode()
 
     # Give user random set of 4 puzzles
-    for i in range(4):
-        shuffle(PUZZLE_IDS)
-        c = choice(PUZZLE_IDS)
-        if c not in USER_DATA[id]["pages"]:
-            USER_DATA[id]["pages"].append(c)
+    pids = Puzzles.set()
 
     # Set start time
-    USER_DATA[id]["start"] = gmtime()
+    time_start = gmtime()
 
     # Set current puzzle to first puzzle in pages list
-    USER_DATA[id]["pid"] = USER_DATA[id]["pages"][0]
+    c_pid = pids[0]
 
-    # Return jwt string to go in cookie
-    return jwt.encode({"id": id, "pid": USER_DATA[id]["pid"], "pages": USER_DATA[id]["pages"], "complete": 0},
-                      "959563cf6dc1dfdf2b3fef8efb82315b4493f178107b6ec79da877d789d9ae64").decode()
+    # Save to database
+    UserData.insert(uid, json.dumps(pids), c_pid, time_start)
 
-
+    # Return string to go in cookie
+    return uid + "." + sha512(uid.encode()).hexdigest()[64:] + "." + sha512(uid.encode()).hexdigest()[:64]
 
 
 # Name: query
@@ -120,12 +286,11 @@ def query():
 
 # Name: index
 # Purpose: listen for get requests, render main page
-# Inputs: tamperer as integer (default: 0)
+# Inputs:
 # Outputs: rendered html
 @app.route("/")
-@app.route("/<int:tamperer>")
-def index(tamperer=0):
-    return render_template("index.html", tamperer=tamperer)
+def index():
+    return render_template("index.html")
 
 
 # Name: start
@@ -140,24 +305,24 @@ def start():
 
         # Check if tampered
         if not verify_data(cookie):
-            resp = make_response(redirect(url_for("index", tamperer=1)))
+            resp = make_response(render_template("tamperer.html"))
             # Remove data cookie
             resp.set_cookie("data", "", expires=0)
             return resp
 
         # Redirect to puzzle working on
-        return redirect("/")
+        return redirect(url_for("puzzle"))
 
-    resp = make_response(redirect("/"))
+    resp = make_response(redirect(url_for("puzzle")))
     resp.set_cookie("data", create_user())
     return resp
 
 
 # Name: finish
-# Purpose: listen for get requests, finish user's challenge
+# Purpose: listen for post requests, finish user's challenge
 # Inputs:
-# Outputs: rendered html
-@app.route("/finish")
+# Outputs: redirects
+@app.route("/finish", methods=["GET", "POST"])
 def finish():
     # Get cookie data
     cookie = get_data_from_cookie()
@@ -165,12 +330,50 @@ def finish():
     # Validate data
     if not verify_data(cookie):
         # Remove data cookie
-        resp = make_response(redirect(url_for("index", tamperer=1)))
+        resp = make_response(render_template("tamperer.html"))
         resp.set_cookie("data", "", expires=0)
         return resp
 
-    # Check if truly finished
-    if cookie["completed"] != POSSIBLE_COMPLETED or cookie["pid"] != cookie["pages"][3]:
-        return redirect("/")
+    if request.method == "GET":
+        return render_template("pre-finish.html")
 
-    USER_DATA[cookie["id"]]["end"] = gmtime()
+    # Get form data
+    name = request.form.get("name")
+
+    # Insert into finishers database
+    player = UserData.query(cookie[0])
+    Finishers.insert(cookie[0], name, player[5])
+
+    # Render finish
+    return render_template("finish.html", name=name, time=player[5])
+
+
+# Name: puzzle
+# Purpose: listen for get requests, view a given puzzle
+# Inputs:
+# Outputs: rendered html
+@app.route("/puzzle")
+def puzzle():
+    # Get cookie data
+    cookie = get_data_from_cookie()
+
+    # Validate data
+    if not verify_data(cookie):
+        # Remove data cookie
+        resp = make_response(render_template("tamperer.html"))
+        resp.set_cookie("data", "", expires=0)
+        return resp
+
+    # Check if finished
+    player = UserData.query(cookie[0])
+    if json.loads(player[1])[POSSIBLE_COMPLETED - 1] == player[2] and player[3] == POSSIBLE_COMPLETED:
+        # Set end time & redirect to end page
+        UserData.update(cookie[0], time_end=gmtime())
+        return redirect(url_for("finish"))
+
+    # Select & return current puzzle's html
+    return Puzzles.html(player[2])
+
+
+if __name__ == "__main__":
+    app.run(host=ADDRESS, port=PORT, debug=DEBUG)
