@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Almost Done...</title>
+</head>
+<body>
+    <h1>You're almost done...</h1>
+    <p>Enter name to finish & get reward</p>
+    <form method="post" action="{{ url_for('finish') }}">
+        <input type="text" name="name" placeholder="Name">
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
