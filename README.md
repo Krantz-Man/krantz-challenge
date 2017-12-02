@@ -27,6 +27,7 @@ Before you run `server.py`, edit the following variables to match your desired c
 | ADDRESS             | "127.0.0.1"   | String  | Address for Flask to listen on                     |
 | PORT                | 5000          | Integer | Port for Flask to run on                           |
 | POSSIBLE\_COMPLETED | 4             | Integer | Number of puzzles a player is required to complete |
+| DEBUG               | True          | Boolean | Run flask in debug mode or not                     |
 
 Type the following into the terminal (Linux/MacOS) or command prompt (Windows): `python3 server.py`
 
