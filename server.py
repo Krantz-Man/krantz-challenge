@@ -38,15 +38,15 @@ class Finishers(object):
 
     # Name: insert
     # Purpose: insert a row into the table
-    # Inputs: uid as string, name as string, total_time as integer
+    # Inputs: uid as string, name as string, email as string, total_time as integer
     # Outputs:
     @staticmethod
-    def insert(uid, name, total_time):
+    def insert(uid, name, email, total_time):
         # Connect to database
         connection = sqlite3.connect("data.db")
 
         # Insert into table
-        connection.execute("INSERT INTO finishers VALUES (?, ?, ?)", [uid, name, total_time])
+        connection.execute("INSERT INTO finishers VALUES (?, ?, ?, ?)", [uid, name, email, total_time])
 
         # Close connection
         connection.commit()
@@ -355,6 +355,7 @@ def start():
 def finish():
     # Get cookie data
     cookie = get_data_from_cookie()
+    played = request.cookie.get("pstatus")
 
     # Validate data
     if not verify_data(cookie):
@@ -368,13 +369,20 @@ def finish():
 
     # Get form data
     name = request.form.get("name")
+    email = request.form.get("email")
 
     # Insert into finishers database
     player = UserData.query(cookie[0])
-    Finishers.insert(cookie[0], name, player[5])
+    Finishers.insert(cookie[0], name, email, player[5])
+
+    # Check if already played
+    if played:
+        return render_template("finish.dev.html", name=name, time=(player[5]-player[4]), played=played)
 
     # Render finish
-    return render_template("finish.dev.html", name=name, time=(player[5]-player[4]))
+    resp = make_response(render_template("finish.dev.html", name=name, time=(player[5]-player[4])))
+    resp.set_cookie("pstatus", 1)
+    return resp
 
 
 # Name: puzzle
