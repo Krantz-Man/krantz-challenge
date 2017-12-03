@@ -3,7 +3,7 @@ from os import urandom
 from binascii import hexlify
 from random import choice, shuffle
 from datetime import datetime
-from time import gmtime, strftime
+from time import time
 from hashlib import sha512
 import json
 import sqlite3
@@ -22,7 +22,7 @@ DEBUG = True
 class Finishers(object):
     # Name: query
     # Purpose: query the table based off of inputs
-    # Inputs: uid as string (default: None), name as string (default: None), time as integer (default: None)
+    # Inputs: uid as string
     # Outputs: list of returned objects
     @staticmethod
     def query(uid):
@@ -38,15 +38,15 @@ class Finishers(object):
 
     # Name: insert
     # Purpose: insert a row into the table
-    # Inputs: uid as string, name as string, time as integer
+    # Inputs: uid as string, name as string, total_time as integer
     # Outputs:
     @staticmethod
-    def insert(uid, name, time):
+    def insert(uid, name, total_time):
         # Connect to database
         connection = sqlite3.connect("data.db")
 
         # Insert into table
-        connection.execute("INSERT INTO finishers VALUES (?, ?, ?)", [uid, name, time])
+        connection.execute("INSERT INTO finishers VALUES (?, ?, ?)", [uid, name, total_time])
 
         # Close connection
         connection.commit()
@@ -82,12 +82,36 @@ class Puzzles(object):
         connection = sqlite3.connect("data.db")
 
         # Update completions
-        prev = connection.execute("SELECT completions FROM puzzles WHERE id = ?", [pid]).fetchall()[0][0]
+        prev = connection.execute("SELECT completions FROM puzzles WHERE id = ?", [pid]).fetchone()
+        if not prev:
+            return
+        else:
+            prev = prev[0]
         connection.execute("UPDATE puzzles SET completions = ? WHERE id = ?", [prev + 1, pid])
 
         # Close and commit
         connection.commit()
         connection.close()
+
+    # Name: solution
+    # Purpose: get solution for given puzzle
+    # Inputs: pid as string
+    # Outputs: solution as string
+    @staticmethod
+    def solution(pid):
+        # Connect to database
+        connection = sqlite3.connect("data.db")
+
+        # Get solution from table
+        sol = connection.execute("SELECT solution FROM puzzles WHERE id = ?", [pid]).fetchone()
+        if not sol:
+            sol = None
+        else:
+            sol = sol[0]
+
+        # Close connection & return data
+        connection.close()
+        return sol
 
     # Name: html
     # Purpose: get html for specific puzzle
@@ -99,7 +123,11 @@ class Puzzles(object):
         connection = sqlite3.connect("data.db")
 
         # Get html for given puzzle id
-        html = connection.execute("SELECT html FROM puzzles WHERE id = ?", [pid]).fetchall()[0][0]
+        html = connection.execute("SELECT html FROM puzzles WHERE id = ?", [pid]).fetchone()
+        if not html:
+            html = None
+        else:
+            html = html[0]
 
         # Close and return data
         connection.close()
@@ -149,7 +177,7 @@ class UserData(object):
         connection = sqlite3.connect("data.db")
 
         # Get user
-        user = connection.execute("SELECT * FROM user_data WHERE id = ?", [uid]).fetchall()[0]
+        user = connection.execute("SELECT * FROM user_data WHERE id = ?", [uid]).fetchone()
 
         # Close and return user
         connection.close()
@@ -166,7 +194,7 @@ class UserData(object):
 
         # Insert into table
         connection.execute("INSERT INTO user_data (id, pages, current, start) VALUES (?, ?, ?, ?)",
-                           [uid, pages, current, time_start])
+                           (uid, pages, current, time_start))
 
         # Commit and close connection
         connection.commit()
@@ -174,28 +202,30 @@ class UserData(object):
 
     # Name: update
     # Purpose: update a row in the table
-    # Inputs: uid as string, complete as integer (default: None), end as integer (default: None), tampered as boolean (default: None)
+    # Inputs: uid as string, complete as integer (default: None), end as integer (default: None), tampered as boolean (default: None), current as string (default: None)
     # Outputs:
     @staticmethod
-    def update(uid, complete=None, time_end=None, tampered=None):
+    def update(uid, complete=None, time_end=None, tampered=None, current=None):
         # Check if user exists
         if len(UserData.query(uid)) == 0:
             return
 
         # Set to previous value if not passed
         if not complete:
-            complete = UserData.query(uid)[2]
+            complete = UserData.query(uid)[3]
         if not time_end:
-            time_end = UserData.query(uid)[4]
+            time_end = UserData.query(uid)[5]
         if not tampered:
-            tampered = UserData.query(uid)[5]
+            tampered = UserData.query(uid)[6]
+        if not current:
+            current = UserData.query(uid)[2]
 
         # Connect to database
         connection = sqlite3.connect("data.db")
 
         # Update row
-        connection.execute("UPDATE user_data SET complete = ?, end = ?, tampered = ? WHERE id = ?",
-                           [complete, time_end, tampered, uid])
+        connection.execute("UPDATE user_data SET complete = ?, end = ?, tampered = ?, current = ? WHERE id = ?",
+                           [complete, time_end, tampered, current, uid])
 
         # Commit and close connection
         connection.commit()
@@ -228,8 +258,7 @@ def send_stats():
 def get_data_from_cookie():
     # Get and decode data in cookie
     cookie = request.cookies.get("data").split(".")
-    cookie = [cookie[0], "".join((cookie[1], cookie[2]))]
-    # Return cookie dictionary
+    # Return cookie list
     return cookie
 
 
@@ -243,7 +272,7 @@ def verify_data(cookie):
         return False
 
     # Verify uid matches on in database
-    if len(UserData.query(cookie[0])) == 0:
+    if not UserData.query(cookie[0]):
         return False
 
     # If no error, return true
@@ -262,7 +291,7 @@ def create_user():
     pids = Puzzles.set()
 
     # Set start time
-    time_start = gmtime()
+    time_start = int(time())
 
     # Set current puzzle to first puzzle in pages list
     c_pid = pids[0]
@@ -271,7 +300,7 @@ def create_user():
     UserData.insert(uid, json.dumps(pids), c_pid, time_start)
 
     # Return string to go in cookie
-    return uid + "." + sha512(uid.encode()).hexdigest()[64:] + "." + sha512(uid.encode()).hexdigest()[:64]
+    return uid + "." + sha512(uid.encode()).hexdigest()
 
 
 # Name: query
@@ -290,7 +319,7 @@ def query():
 # Outputs: rendered html
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.dev.html")
 
 
 # Name: start
@@ -305,7 +334,7 @@ def start():
 
         # Check if tampered
         if not verify_data(cookie):
-            resp = make_response(render_template("tamperer.html"))
+            resp = make_response(render_template("tamperer.dev.html"))
             # Remove data cookie
             resp.set_cookie("data", "", expires=0)
             return resp
@@ -319,7 +348,7 @@ def start():
 
 
 # Name: finish
-# Purpose: listen for post requests, finish user's challenge
+# Purpose: listen for get & post requests, finish user's challenge
 # Inputs:
 # Outputs: redirects
 @app.route("/finish", methods=["GET", "POST"])
@@ -330,12 +359,12 @@ def finish():
     # Validate data
     if not verify_data(cookie):
         # Remove data cookie
-        resp = make_response(render_template("tamperer.html"))
+        resp = make_response(render_template("tamperer.dev.html"))
         resp.set_cookie("data", "", expires=0)
         return resp
 
     if request.method == "GET":
-        return render_template("pre-finish.html")
+        return render_template("pre-finish.dev.html")
 
     # Get form data
     name = request.form.get("name")
@@ -345,7 +374,7 @@ def finish():
     Finishers.insert(cookie[0], name, player[5])
 
     # Render finish
-    return render_template("finish.html", name=name, time=player[5])
+    return render_template("finish.dev.html", name=name, time=(player[5]-player[4]))
 
 
 # Name: puzzle
@@ -360,19 +389,61 @@ def puzzle():
     # Validate data
     if not verify_data(cookie):
         # Remove data cookie
-        resp = make_response(render_template("tamperer.html"))
+        resp = make_response(render_template("tamperer.dev.html"))
         resp.set_cookie("data", "", expires=0)
         return resp
 
-    # Check if finished
+    # Select & return current puzzle's html
     player = UserData.query(cookie[0])
+    return Puzzles.html(player[2])
+
+
+# Name: check
+# Purpose: listen for get & post requests, check answer for puzzle
+# Inputs:
+# Outputs: redirection
+@app.route("/check", methods=["GET", "POST"])
+def check():
+    # Redirect to puzzle if get request
+    if request.method == "GET":
+        return redirect(url_for("puzzle"))
+
+    # Get cookie data
+    cookie = get_data_from_cookie()
+    # Validate data
+    if not verify_data(cookie):
+        # Remove data cookie
+        resp = make_response(render_template("tamperer.dev.html"))
+        resp.set_cookie("data", "", expires=0)
+        return resp
+
+    # Get other data
+    player = UserData.query(cookie[0])
+    solution = Puzzles.solution(player[2])
+    response = request.form.get("response")
+
+    # Validate response
+    if solution != response:
+        return redirect(url_for("puzzle"))
+    # Update puzzle completions
+    Puzzles.update(player[2])
+
+    # Update player's puzzle completions
+    UserData.update(cookie[0], complete=player[3] + 1)
+    player = UserData.query(cookie[0])
+
+    # Check if finished
     if json.loads(player[1])[POSSIBLE_COMPLETED - 1] == player[2] and player[3] == POSSIBLE_COMPLETED:
         # Set end time & redirect to end page
-        UserData.update(cookie[0], time_end=gmtime())
+        UserData.update(cookie[0], time_end=int(time()))
         return redirect(url_for("finish"))
 
-    # Select & return current puzzle's html
-    return Puzzles.html(player[2])
+    # Update player's current puzzle
+    curr_puzzle = json.loads(player[1])[json.loads(player[1]).index(player[2])+1]
+    UserData.update(cookie[0], current=curr_puzzle)
+
+    # Redirect to next puzzle
+    return redirect(url_for("puzzle"))
 
 
 if __name__ == "__main__":
