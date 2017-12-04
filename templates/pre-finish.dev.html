@@ -6,9 +6,10 @@
 </head>
 <body>
     <h1>You're almost done...</h1>
-    <p>Enter name to finish & get reward</p>
+    <p>Enter your name and email to finish. If you don't do this or give false information, then you won't get you're well deserved reward.</p>
     <form method="post" action="{{ url_for('finish') }}">
         <input type="text" name="name" placeholder="Name">
+        <input type="email" name="email" placeholder="Email">
         <input type="submit" value="Submit">
     </form>
 </body>

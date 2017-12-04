@@ -5,12 +5,24 @@
     <title>Finished</title>
 </head>
 <body>
+    {% if tampered %}
+    <h1>Hmmm... Something doesn't seem right</h1>
+    <p>See if you can spot the fallacy (because I sure can):</p>
+    <ul>
+        <li>You were assigned {{ tampered[0] }} puzzles</li>
+        <li>You completed {{ tampered[1] }} puzzles</li>
+        <li>You were on puzzle {{ tampered[2] }} of {{ tampered[0] }}</li>
+    </ul>
+    <p>This doesn't seem right now does it. Unfortunately, you will not be receiving a reward for you cheating. However mad props to you for finding a bug this serious. I will be emailing you from <a href="mailto:krantzie124@gmail.com">krantzie124@gmail.com</a> regarding how you found this bug.</p>
+    <p>Feel free to <a href="{{ url_for('start') }}">try again</a> and complete it <u><b>without</b></u> cheating to get a reward.</p>
+    {% elif  played %}
     <h1>Congratulations {{ name }}!!!</h1>
-    {% if not played %}
+    <p>You have successfully completed Krantz's Challenge in {{ time }}. Unfortunately you will not receive another reward as this is not your first time playing.</p>
+    <p>If for some reason you want to play yet another time, <a href="{{ url_for('start') }}">go ahead</a>, but you still won't recieve another reward.</p>
+    {% else %}
+    <h1>Congratulations {{ name }}!!!</h1>
     <p>You have successfully completed Krantz's Challenge in {{ time }}. I will email you from <a href="mailto:krantzie124@gmail.com">krantzie124@gmail.com</a> in the following 24 hours about your reward.</p>
     <p>Feel free to <a href="{{ url_for('start') }}">play again</a> if you would like. Note: you will not get a second reward.</p>
-    {% else %}
-    <p>You have successfully completed Krantz's Challenge in {{ time }}. Unfortunately you will not receive another reward as this is not your first time playing.</p>
     {% endif %}
     <p><a href="{{ url_for('index') }}">Home</a></p>
 </body>

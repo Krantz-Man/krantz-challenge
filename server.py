@@ -10,7 +10,7 @@ import sqlite3
 import requests
 
 app = Flask(__name__)
-STATISTICS = {"Players": 0, "Completions": 0, "Tamper Attempts": 0, "Finishers": {}}
+STATISTICS = {"Players": 0, "Completions": 0, "Tamper Attempts": 0, "Finishers": [], "Highscore": ["None", 0], "Tamperers": []}
 POSSIBLE_COMPLETED = 4
 ADDRESS = "127.0.0.1"
 PORT = 5000
@@ -237,11 +237,28 @@ class UserData(object):
 # Inputs:
 # Outputs: status code
 def send_stats():
-    body = "Sent on: " + (datetime.now()).strftime("%m-%d-%Y %H:%M:%S") + \
+    # Format finishers
+    finishers = ""
+    for index, finisher in enumerate(STATISTICS["Finishers"]):
+        finishers += "\t" + str(index + 1) + ": "
+        finishers += "Name: " + finisher["name"] + ", "
+        finishers += "Email: " + finisher["email"] + ", "
+        finishers += "Time: " + str(finisher["time"]) + " seconds\n"
+
+    # Format tamperers
+    tamperers = ""
+    for index, tamperer in enumerate(STATISTICS["Tamperers"]):
+        tamperers += "\t" + str(index + 1) + ": "
+        tamperers += "Name: " + tamperer["name"] + ", "
+        tamperers += "Email: " + tamperer["email"] + "\n"
+
+    body = "Sent on: " + (datetime.now()).strftime("%m-%d-%Y %H:%M:%S") + "\n\n" + \
            "\nPlay Statistics:\n\tPlayers: " + str(STATISTICS["Players"]) + \
            "\n\tCompletions: " + str(STATISTICS["Completions"]) + \
            "\n\tAttempted Tampers: " + str(STATISTICS["Tamper Attempts"]) + \
-           "\n\tPeople to Complete: " + str(STATISTICS["Finishers"]).replace("{", "").replace("}", "").replace("'", "")
+           "\n\tHighscore Holder: " + STATISTICS["Highscore"][0] + " with a time of " + str(STATISTICS["Highscore"][1]) + " seconds" + \
+           "\n\nFinishers:\n" + finishers + \
+           "\n\nTamperers:\n" + tamperers
     a = ("api", "key-ad17fb62543c603f85282ff31b8c602d")
     d = {"from": "Game Info <mailgun@mg.alexkrantz.com>",
          "to": "krantzie124@gmail.com",
@@ -334,6 +351,9 @@ def start():
 
         # Check if tampered
         if not verify_data(cookie):
+            # Update tamper statistics
+            STATISTICS["Tamper Attempts"] += 1
+
             resp = make_response(render_template("tamperer.dev.html"))
             # Remove data cookie
             resp.set_cookie("data", "", expires=0)
@@ -342,6 +362,10 @@ def start():
         # Redirect to puzzle working on
         return redirect(url_for("puzzle"))
 
+    # Update statistics
+    STATISTICS["Players"] += 1
+
+    # Create response w/ cookie
     resp = make_response(redirect(url_for("puzzle")))
     resp.set_cookie("data", create_user())
     return resp
@@ -359,6 +383,9 @@ def finish():
 
     # Validate data
     if not verify_data(cookie):
+        # Update tamper statistics
+        STATISTICS["Tamper Attempts"] += 1
+
         # Remove data cookie
         resp = make_response(render_template("tamperer.dev.html"))
         resp.set_cookie("data", "", expires=0)
@@ -375,9 +402,25 @@ def finish():
     player = UserData.query(cookie[0])
     Finishers.insert(cookie[0], name, email, player[5])
 
+    # Update completions & finishers
+    STATISTICS["Completions"] += 1
+    STATISTICS["Finishers"].append({"name": name, "email": email, "time": (player[5]-player[4])})
+
     # Check if already played
     if played:
         return render_template("finish.dev.html", name=name, time=(player[5]-player[4]), played=played)
+
+    # Check if tampered
+    if player[6] == 1:
+        # Remove from completions/finishers & add to tamperers
+        STATISTICS["Completions"] -= 1
+        STATISTICS["Tamperers"].append(STATISTICS["Finishers"].pop(len(STATISTICS["Finishers"])-1))
+
+        # Load tamper data
+        tamper = [POSSIBLE_COMPLETED, player[3], player[1].index(player[2])+1]
+
+        # Render 'finish'
+        return render_template("finish.dev.html", name=name, time=(player[5]-player[4]), tamperer=tamper)
 
     # Render finish
     resp = make_response(render_template("finish.dev.html", name=name, time=(player[5]-player[4])))
@@ -396,6 +439,9 @@ def puzzle():
 
     # Validate data
     if not verify_data(cookie):
+        # Update tamper statistics
+        STATISTICS["Tamper Attempts"] += 1
+
         # Remove data cookie
         resp = make_response(render_template("tamperer.dev.html"))
         resp.set_cookie("data", "", expires=0)
@@ -420,6 +466,9 @@ def check():
     cookie = get_data_from_cookie()
     # Validate data
     if not verify_data(cookie):
+        # Update tamper statistics
+        STATISTICS["Tamper Attempts"] += 1
+
         # Remove data cookie
         resp = make_response(render_template("tamperer.dev.html"))
         resp.set_cookie("data", "", expires=0)
@@ -445,6 +494,17 @@ def check():
         # Set end time & redirect to end page
         UserData.update(cookie[0], time_end=int(time()))
         return redirect(url_for("finish"))
+
+    # Check if value mismatch
+    elif (json.loads(player[1])[POSSIBLE_COMPLETED - 1] != player[2] and player[3] == POSSIBLE_COMPLETED) \
+        or (json.loads(player[1])[POSSIBLE_COMPLETED - 1] == player[2] and player[3] != POSSIBLE_COMPLETED):
+        # Update tampered value
+        UserData.update(cookie[0], tampered=1)
+
+        # Set end time & redirect to end page
+        UserData.update(cookie[0], time_end=int(time()))
+        return redirect(url_for("finish"))
+
 
     # Update player's current puzzle
     curr_puzzle = json.loads(player[1])[json.loads(player[1]).index(player[2])+1]

@@ -69,3 +69,19 @@ Constants:
     * Puzzle IDs - [0702851a4492cb1de55ac59db87fce4e, 7401aee89c2b8989cd35c99799794a15, 30561bc7431486bee6780e9f844fc7b6, 7316d2a7132b53c6b5d81d55a42a6c60, 72b9f37d48677a429ba0c1db4eaf5f93, e3b4ded936b613bd9cfffcfeb34fa874, 1739854f4d3ff2269274837a77ce0d75, 7c045263775a5c306f16f442ccf25226, 881b6f42d9cca3c08e361fe2dd5dcea8, d66dcec01318c9e87c2a5be246adfa53, fec66c8e8a47887eaea0bf7f5750fc85, 8571d2129c74ca323d46f11d4c33ecbd, da3ffe61ad522cd3f897efd5f50620ac, 0575ffd11831ac0adbd1ef499cf69d49, 7da2b935a167ee54ff48c2377fc0b0a2, 6a668de676f70f2f3c6e146c8009dd56]
         - Pythonic Version - ["0702851a4492cb1de55ac59db87fce4e", "7401aee89c2b8989cd35c99799794a15", "30561bc7431486bee6780e9f844fc7b6", "7316d2a7132b53c6b5d81d55a42a6c60", "72b9f37d48677a429ba0c1db4eaf5f93", "e3b4ded936b613bd9cfffcfeb34fa874", "1739854f4d3ff2269274837a77ce0d75", "7c045263775a5c306f16f442ccf25226", "881b6f42d9cca3c08e361fe2dd5dcea8", "d66dcec01318c9e87c2a5be246adfa53", "fec66c8e8a47887eaea0bf7f5750fc85", "8571d2129c74ca323d46f11d4c33ecbd", "da3ffe61ad522cd3f897efd5f50620ac", "0575ffd11831ac0adbd1ef499cf69d49", "7da2b935a167ee54ff48c2377fc0b0a2", "6a668de676f70f2f3c6e146c8009dd56"]
 
+
+Email Format:
+    * Structure
+        - Timestamp
+        - Players
+        - Completions
+        - Attempted Tampers
+        - Finishers
+        - Tamperers
+    * Information
+        - Timestamp: from datetime.now()
+        - Players: number of people to start
+        - Completions: number of people to complete
+        - Attempted Tampers: number of people to try and tamper
+        - Finishers: finisher's name, email & time
+        - Tamperers: tamperer's name & email
