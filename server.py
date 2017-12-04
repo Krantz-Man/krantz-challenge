@@ -2,15 +2,15 @@ from flask import Flask, make_response, request, redirect, url_for, render_templ
 from os import urandom
 from binascii import hexlify
 from random import choice, shuffle
-from datetime import datetime
-from time import time
+from time import time, strftime
 from hashlib import sha512
 import json
 import sqlite3
 import requests
 
 app = Flask(__name__)
-STATISTICS = {"Players": 0, "Completions": 0, "Tamper Attempts": 0, "Finishers": [], "Highscore": ["None", 0], "Tamperers": []}
+STATISTICS = {"Players": 0, "Completions": 0, "Tamper Attempts": 0,
+              "Finishers": [], "Highscore": ["None", 0], "Tamperers": []}
 POSSIBLE_COMPLETED = 4
 ADDRESS = "127.0.0.1"
 PORT = 5000
@@ -202,7 +202,8 @@ class UserData(object):
 
     # Name: update
     # Purpose: update a row in the table
-    # Inputs: uid as string, complete as integer (default: None), end as integer (default: None), tampered as boolean (default: None), current as string (default: None)
+    # Inputs: uid as string, complete as integer (default: None), time_end as integer (default: None),
+    #           tampered as boolean (default: None), current as string (default: None)
     # Outputs:
     @staticmethod
     def update(uid, complete=None, time_end=None, tampered=None, current=None):
@@ -239,24 +240,25 @@ class UserData(object):
 def send_stats():
     # Format finishers
     finishers = ""
-    for index, finisher in enumerate(STATISTICS["Finishers"]):
-        finishers += "\t" + str(index + 1) + ": "
+    for i, finisher in enumerate(STATISTICS["Finishers"]):
+        finishers += "\t" + str(i + 1) + ": "
         finishers += "Name: " + finisher["name"] + ", "
         finishers += "Email: " + finisher["email"] + ", "
         finishers += "Time: " + str(finisher["time"]) + " seconds\n"
 
     # Format tamperers
     tamperers = ""
-    for index, tamperer in enumerate(STATISTICS["Tamperers"]):
-        tamperers += "\t" + str(index + 1) + ": "
+    for i, tamperer in enumerate(STATISTICS["Tamperers"]):
+        tamperers += "\t" + str(i + 1) + ": "
         tamperers += "Name: " + tamperer["name"] + ", "
         tamperers += "Email: " + tamperer["email"] + "\n"
 
-    body = "Sent on: " + (datetime.now()).strftime("%m-%d-%Y %H:%M:%S") + "\n\n" + \
+    body = "Sent on: " + strftime("%m-%d-%Y %H:%M:%S") + "\n\n" + \
            "\nPlay Statistics:\n\tPlayers: " + str(STATISTICS["Players"]) + \
            "\n\tCompletions: " + str(STATISTICS["Completions"]) + \
            "\n\tAttempted Tampers: " + str(STATISTICS["Tamper Attempts"]) + \
-           "\n\tHighscore Holder: " + STATISTICS["Highscore"][0] + " with a time of " + str(STATISTICS["Highscore"][1]) + " seconds" + \
+           "\n\tHighscore Holder: " + str(STATISTICS["Highscore"][0]) + \
+           " with a time of " + str(STATISTICS["Highscore"][1]) + " seconds" + \
            "\n\nFinishers:\n" + finishers + \
            "\n\nTamperers:\n" + tamperers
     a = ("api", "key-ad17fb62543c603f85282ff31b8c602d")
@@ -367,7 +369,7 @@ def start():
 
     # Create response w/ cookie
     resp = make_response(redirect(url_for("puzzle")))
-    resp.set_cookie("data", create_user())
+    resp.set_cookie("data", create_user(), expires=(time() + 316000000))
     return resp
 
 
@@ -379,7 +381,7 @@ def start():
 def finish():
     # Get cookie data
     cookie = get_data_from_cookie()
-    played = request.cookie.get("pstatus")
+    played = request.cookies.get("pstatus")
 
     # Validate data
     if not verify_data(cookie):
@@ -400,31 +402,32 @@ def finish():
 
     # Insert into finishers database
     player = UserData.query(cookie[0])
-    Finishers.insert(cookie[0], name, email, player[5])
+    if cookie[6] != 1:
+        Finishers.insert(cookie[0], name, email, player[5])
 
     # Update completions & finishers
     STATISTICS["Completions"] += 1
-    STATISTICS["Finishers"].append({"name": name, "email": email, "time": (player[5]-player[4])})
+    STATISTICS["Finishers"].append({"name": name, "email": email, "time": (player[5] - player[4])})
 
     # Check if already played
     if played:
-        return render_template("finish.dev.html", name=name, time=(player[5]-player[4]), played=played)
+        return render_template("finish.dev.html", name=name, time=(player[5] - player[4]), played=played)
 
     # Check if tampered
     if player[6] == 1:
         # Remove from completions/finishers & add to tamperers
         STATISTICS["Completions"] -= 1
-        STATISTICS["Tamperers"].append(STATISTICS["Finishers"].pop(len(STATISTICS["Finishers"])-1))
+        STATISTICS["Tamperers"].append(STATISTICS["Finishers"].pop(len(STATISTICS["Finishers"]) - 1))
 
         # Load tamper data
-        tamper = [POSSIBLE_COMPLETED, player[3], player[1].index(player[2])+1]
+        tamper = [POSSIBLE_COMPLETED, player[3], json.loads(player[1]).index(player[2]) + 1]
 
         # Render 'finish'
-        return render_template("finish.dev.html", name=name, time=(player[5]-player[4]), tamperer=tamper)
+        return render_template("finish.dev.html", name=name, time=(player[5] - player[4]), tamperer=tamper)
 
     # Render finish
-    resp = make_response(render_template("finish.dev.html", name=name, time=(player[5]-player[4])))
-    resp.set_cookie("pstatus", 1)
+    resp = make_response(render_template("finish.dev.html", name=name, time=(player[5] - player[4])))
+    resp.set_cookie("pstatus", 1, expires=(time() + 316000000))
     return resp
 
 
@@ -497,17 +500,17 @@ def check():
 
     # Check if value mismatch
     elif (json.loads(player[1])[POSSIBLE_COMPLETED - 1] != player[2] and player[3] == POSSIBLE_COMPLETED) \
-        or (json.loads(player[1])[POSSIBLE_COMPLETED - 1] == player[2] and player[3] != POSSIBLE_COMPLETED):
+            or (json.loads(player[1])[POSSIBLE_COMPLETED - 1] == player[2] and player[3] != POSSIBLE_COMPLETED):
         # Update tampered value
         UserData.update(cookie[0], tampered=1)
 
-        # Set end time & redirect to end page
-        UserData.update(cookie[0], time_end=int(time()))
-        return redirect(url_for("finish"))
-
+        if player[3] >= POSSIBLE_COMPLETED:
+            # Set end time & redirect to end page
+            UserData.update(cookie[0], time_end=int(time()))
+            return redirect(url_for("finish"))
 
     # Update player's current puzzle
-    curr_puzzle = json.loads(player[1])[json.loads(player[1]).index(player[2])+1]
+    curr_puzzle = json.loads(player[1])[json.loads(player[1]).index(player[2]) + 1]
     UserData.update(cookie[0], current=curr_puzzle)
 
     # Redirect to next puzzle
