@@ -30,7 +30,9 @@ class Finishers(object):
         connection = sqlite3.connect("data.db")
 
         # Get data
-        data = connection.execute("SELECT * FROM finishers WHERE id = ?", [uid]).fetchall()
+        data = connection.execute("SELECT * FROM finishers WHERE id = ?", [uid]).fetchone()
+        if not data:
+            data = None
 
         # Close and return data
         connection.close()
@@ -114,24 +116,22 @@ class Puzzles(object):
         return sol
 
     # Name: html
-    # Purpose: get html for specific puzzle
+    # Purpose: get data for specific puzzle
     # Inputs: pid as string
-    # Outputs:
+    # Outputs: tuple of title and prompt
     @staticmethod
-    def html(pid):
+    def data(pid):
         # Connect to database
         connection = sqlite3.connect("data.db")
 
         # Get html for given puzzle id
-        html = connection.execute("SELECT html FROM puzzles WHERE id = ?", [pid]).fetchone()
-        if not html:
-            html = None
-        else:
-            html = html[0]
+        data = connection.execute("SELECT title, prompt FROM puzzles WHERE id = ?", [pid]).fetchone()
+        if not data:
+            data = None
 
         # Close and return data
         connection.close()
-        return html
+        return data
 
     # Name: set
     # Purpose: get random set of puzzles
@@ -347,6 +347,7 @@ def index():
 # Outputs: redirect to starting page
 @app.route("/start")
 def start():
+    # Check user has not started
     if request.cookies.get("data"):
         # Get cookie data
         cookie = get_data_from_cookie()
@@ -379,6 +380,10 @@ def start():
 # Outputs: redirects
 @app.route("/finish", methods=["GET", "POST"])
 def finish():
+    # Check user has started
+    if not request.cookies.get("data"):
+        return render_template("tamperer.dev.html")
+
     # Get cookie data
     cookie = get_data_from_cookie()
     played = request.cookies.get("pstatus")
@@ -394,6 +399,10 @@ def finish():
         return resp
 
     if request.method == "GET":
+        c = Finishers.query(cookie[0])
+        if c:
+            return render_template("finish.dev.html", name=c[1], time=c[2])
+
         return render_template("pre-finish.dev.html")
 
     # Get form data
@@ -402,7 +411,7 @@ def finish():
 
     # Insert into finishers database
     player = UserData.query(cookie[0])
-    if cookie[6] != 1:
+    if player[6] != 1:
         Finishers.insert(cookie[0], name, email, player[5])
 
     # Update completions & finishers
@@ -427,7 +436,7 @@ def finish():
 
     # Render finish
     resp = make_response(render_template("finish.dev.html", name=name, time=(player[5] - player[4])))
-    resp.set_cookie("pstatus", 1, expires=(time() + 316000000))
+    resp.set_cookie("pstatus", "1", expires=(time() + 316000000))
     return resp
 
 
@@ -437,6 +446,10 @@ def finish():
 # Outputs: rendered html
 @app.route("/puzzle")
 def puzzle():
+    # Check user has started
+    if not request.cookies.get("data"):
+        return render_template("tamperer.dev.html")
+
     # Get cookie data
     cookie = get_data_from_cookie()
 
@@ -452,7 +465,8 @@ def puzzle():
 
     # Select & return current puzzle's html
     player = UserData.query(cookie[0])
-    return Puzzles.html(player[2])
+    data = Puzzles.data(player[2])
+    return render_template("puzzle.dev.html", title=data[0], prompt=data[1])
 
 
 # Name: check
@@ -461,6 +475,10 @@ def puzzle():
 # Outputs: redirection
 @app.route("/check", methods=["GET", "POST"])
 def check():
+    # Check if user has started
+    if not request.cookies.get("data"):
+        return render_template("tamperer.dev.html")
+
     # Redirect to puzzle if get request
     if request.method == "GET":
         return redirect(url_for("puzzle"))
@@ -482,9 +500,31 @@ def check():
     solution = Puzzles.solution(player[2])
     response = request.form.get("response")
 
-    # Validate response
-    if solution != response:
+    # Validate response for strings, ints & booleans
+    try:
+        # Create true and false values
+        true_values = ["True", "true", "T", "t"]
+        false_values = ["False", "false", "F", "f"]
+        # Check strings
+        if type(solution) == str and response.lower() != solution:
+            return redirect(url_for("puzzle"))
+        # Check integers
+        elif type(solution) == int and ("." in str(response) or int(response) != solution):
+            return redirect(url_for("puzzle"))
+        # Check floats
+        elif type(solution) == float and float(response) != solution:
+            return redirect(url_for("puzzle"))
+        # Check booleans
+        elif type(solution) == bool and solution is True and response not in true_values:
+            return redirect(url_for("puzzle"))
+        elif type(solution) == bool and solution is False and response not in false_values:
+            return redirect(url_for("puzzle"))
+    # Catch any errors
+    except AttributeError:
         return redirect(url_for("puzzle"))
+    except ValueError:
+        return redirect(url_for("puzzle"))
+
     # Update puzzle completions
     Puzzles.update(player[2])
 

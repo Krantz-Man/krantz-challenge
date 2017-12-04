@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Puzzle {{ number }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <div>
+        {{ prompt|safe }}
+    </div>
+    <form action="/check" method="post">
+        <input type="text" name="response" placeholder="Answer">
+        <input type="submit" value="Check">
+    </form>
+    <p>Return <a href="{{ url_for('index') }}">home</a></p>
+</body>
+</html>
