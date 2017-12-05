@@ -15,6 +15,7 @@ POSSIBLE_COMPLETED = 4
 ADDRESS = "127.0.0.1"
 PORT = 5000
 DEBUG = True
+DATABASE = "data.db"
 
 
 # Name: Finishers
@@ -27,7 +28,7 @@ class Finishers(object):
     @staticmethod
     def query(uid):
         # Connect to database
-        connection = sqlite3.connect("data.db")
+        connection = sqlite3.connect(DATABASE)
 
         # Get data
         data = connection.execute("SELECT * FROM finishers WHERE id = ?", [uid]).fetchone()
@@ -45,7 +46,7 @@ class Finishers(object):
     @staticmethod
     def insert(uid, name, email, total_time):
         # Connect to database
-        connection = sqlite3.connect("data.db")
+        connection = sqlite3.connect(DATABASE)
 
         # Insert into table
         connection.execute("INSERT INTO finishers VALUES (?, ?, ?, ?)", [uid, name, email, total_time])
@@ -65,7 +66,7 @@ class Puzzles(object):
     @staticmethod
     def query(pid):
         # Connect to database
-        connection = sqlite3.connect("data.db")
+        connection = sqlite3.connect(DATABASE)
 
         # Get data
         data = connection.execute("SELECT * FROM puzzles WHERE id = ?", [pid]).fetchall()
@@ -81,7 +82,7 @@ class Puzzles(object):
     @staticmethod
     def update(pid):
         # Connect to database
-        connection = sqlite3.connect("data.db")
+        connection = sqlite3.connect(DATABASE)
 
         # Update completions
         prev = connection.execute("SELECT completions FROM puzzles WHERE id = ?", [pid]).fetchone()
@@ -102,7 +103,7 @@ class Puzzles(object):
     @staticmethod
     def solution(pid):
         # Connect to database
-        connection = sqlite3.connect("data.db")
+        connection = sqlite3.connect(DATABASE)
 
         # Get solution from table
         sol = connection.execute("SELECT solution FROM puzzles WHERE id = ?", [pid]).fetchone()
@@ -122,7 +123,7 @@ class Puzzles(object):
     @staticmethod
     def data(pid):
         # Connect to database
-        connection = sqlite3.connect("data.db")
+        connection = sqlite3.connect(DATABASE)
 
         # Get html for given puzzle id
         data = connection.execute("SELECT title, prompt FROM puzzles WHERE id = ?", [pid]).fetchone()
@@ -140,7 +141,7 @@ class Puzzles(object):
     @staticmethod
     def set():
         # Connect to database
-        connection = sqlite3.connect("data.db")
+        connection = sqlite3.connect(DATABASE)
 
         # Get all ids
         pids = []
@@ -174,7 +175,7 @@ class UserData(object):
     @staticmethod
     def query(uid):
         # Connect to database
-        connection = sqlite3.connect("data.db")
+        connection = sqlite3.connect(DATABASE)
 
         # Get user
         user = connection.execute("SELECT * FROM user_data WHERE id = ?", [uid]).fetchone()
@@ -190,7 +191,7 @@ class UserData(object):
     @staticmethod
     def insert(uid, pages, current, time_start):
         # Connect to database
-        connection = sqlite3.connect("data.db")
+        connection = sqlite3.connect(DATABASE)
 
         # Insert into table
         connection.execute("INSERT INTO user_data (id, pages, current, start) VALUES (?, ?, ?, ?)",
@@ -222,7 +223,7 @@ class UserData(object):
             current = UserData.query(uid)[2]
 
         # Connect to database
-        connection = sqlite3.connect("data.db")
+        connection = sqlite3.connect(DATABASE)
 
         # Update row
         connection.execute("UPDATE user_data SET complete = ?, end = ?, tampered = ?, current = ? WHERE id = ?",
