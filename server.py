@@ -1,4 +1,4 @@
-from flask import Flask, make_response, request, redirect, url_for, render_template
+from flask import Flask, make_response, request, redirect, url_for, render_template, jsonify
 from os import urandom
 from binascii import hexlify
 from random import choice, shuffle
@@ -11,11 +11,16 @@ import requests
 app = Flask(__name__)
 STATISTICS = {"Players": 0, "Completions": 0, "Tamper Attempts": 0,
               "Finishers": [], "Highscore": ["None", 0], "Tamperers": []}
+TO = "krantzie124@gmail.com"  # TODO: change to default value ("test@test.com")
+FROM = "Game Info <mailgun@mg.alexkrantz.com>"  # TODO: change to default value ("test@test.com")
+APIKEY = "key-ad17fb62543c603f85282ff31b8c602d"  # TODO: change to default value ("key")
 POSSIBLE_COMPLETED = 4
 ADDRESS = "127.0.0.1"
 PORT = 5000
 DEBUG = True
 DATABASE = "data.db"
+PASSWORD = "testpass"
+DOMAIN = "mg.alexkrantz.com"  # TODO: change to default value ("test.com")
 
 
 # Name: Finishers
@@ -262,13 +267,13 @@ def send_stats():
            " with a time of " + str(STATISTICS["Highscore"][1]) + " seconds" + \
            "\n\nFinishers:\n" + finishers + \
            "\n\nTamperers:\n" + tamperers
-    a = ("api", "key-ad17fb62543c603f85282ff31b8c602d")
-    d = {"from": "Game Info <mailgun@mg.alexkrantz.com>",
-         "to": "krantzie124@gmail.com",
+    a = ("api", APIKEY)
+    d = {"from": FROM,
+         "to": TO,
          "subject": "Krantz's Challenge Play Statistics",
          "text": body
          }
-    return requests.post("https://api.mailgun.net/v3/mg.alexkrantz.com/messages", auth=a, data=d)
+    return requests.post("https://api.mailgun.net/v3/" + DOMAIN + "/messages", auth=a, data=d)
 
 
 # Name: get_data_from_cookie
@@ -327,10 +332,19 @@ def create_user():
 # Purpose: listen for post requests, send email w/ game statistics
 # Inputs:
 # Outputs: empty string
-@app.route("/query", methods=["POST"])
+@app.route("/query", methods=["POST", "GET"])
 def query():
+    # Check if get request
+    if request.method == "GET":
+        return redirect(url_for("index"))
+
+    # Check if password is valid
+    if request.json.get("pass") != PASSWORD:
+        return jsonify({"status": "failure"})
+
+    # Send game statistics
     send_stats()
-    return ""
+    return jsonify({"status": "success"})
 
 
 # Name: index

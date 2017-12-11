@@ -22,13 +22,18 @@ cd krantz-challenge
 ### Start the Server
 Before you run `server.py`, edit the following variables to match your desired configuration:
 
-| Variable            | Default Value | Format  | Description                                        |
-| ------------------- | ------------- | ------- | -------------------------------------------------- |
-| ADDRESS             | "127.0.0.1"   | String  | Address for Flask to listen on                     |
-| PORT                | 5000          | Integer | Port for Flask to run on                           |
-| POSSIBLE\_COMPLETED | 4             | Integer | Number of puzzles a player is required to complete |
-| DEBUG               | True          | Boolean | Run flask in debug mode or not                     |
-| DATABASE            | "data.db"     | String  | Database to use                                    |
+| Variable            | Default Value   | Format  | Description                                            |
+| ------------------- | --------------- | ------- | ------------------------------------------------------ |
+| ADDRESS             | "127.0.0.1"     | String  | Address for Flask to listen on                         |
+| PORT                | 5000            | Integer | Port for Flask to run on                               |
+| POSSIBLE\_COMPLETED | 4               | Integer | Number of puzzles a player is required to complete     |
+| DEBUG               | True            | Boolean | Run flask in debug mode or not                         |
+| DATABASE            | "data.db"       | String  | Database to use                                        |
+| PASSWORD            | "testpass"      | String  | Password to use for authenticating statistics requests |
+| TO                  | "test@test.com" | String  | Email for sending statistics to                        |
+| FROM                | "test@test.com" | String  | Mailgun email for sending statistics from              |
+| APIKEY              | "key"           | String  | Mailgun API key                                        |
+| DOMAIN              | "test.com"      | String  | Mailgun registered domain to send from                 |
 
 Type the following into the terminal (Linux/MacOS) or command prompt (Windows): `python3 server.py`
 
