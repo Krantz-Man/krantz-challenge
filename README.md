@@ -28,6 +28,7 @@ Before you run `server.py`, edit the following variables to match your desired c
 | PORT                | 5000            | Integer | Port for Flask to run on                               |
 | POSSIBLE\_COMPLETED | 4               | Integer | Number of puzzles a player is required to complete     |
 | DEBUG               | True            | Boolean | Run flask in debug mode or not                         |
+| TESTING             | False           | Boolean | Add override for answers in testing                    |
 | DATABASE            | "data.db"       | String  | Database to use                                        |
 | PASSWORD            | "testpass"      | String  | Password to use for authenticating statistics requests |
 | TO                  | "test@test.com" | String  | Email for sending statistics to                        |
