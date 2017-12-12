@@ -637,9 +637,9 @@ def check():
 # Purpose: listen for get requests, handle 404 errors
 # Inputs:
 # Outputs: rendered html
-@app.route("/<page>")
+@app.route("/<p>")
 def page(p):
-    return render_template("404.dev.html")
+    return render_template("404.dev.html", page=p)
 
 
 if __name__ == "__main__":
