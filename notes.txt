@@ -85,3 +85,7 @@ Email Format:
         - Attempted Tampers: number of people to try and tamper
         - Finishers: finisher's name, email & time
         - Tamperers: tamperer's name & email
+
+
+Curl for CRON job:
+    * curl -X PUT -u "alex:mudPIE2017&" -H "Content-Type: application/json" -d '{"pass":"testpass"}' https://challenge.alexkrantz.com/query
