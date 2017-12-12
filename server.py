@@ -331,14 +331,14 @@ def create_user():
 
 
 # Name: query
-# Purpose: listen for post requests, send email w/ game statistics
+# Purpose: listen for put requests, send email w/ game statistics
 # Inputs:
 # Outputs: empty string
-@app.route("/query", methods=["POST", "GET"])
+@app.route("/query", methods=["PUT", "GET"])
 def query():
     # Check if get request
     if request.method == "GET":
-        return redirect(url_for("index"))
+        return redirect(url_for("home"))
 
     # Check if password is valid
     if request.json.get("pass") != PASSWORD:
@@ -350,11 +350,20 @@ def query():
 
 
 # Name: index
+# Purpose: listen for get requests, redirect to home
+# Inputs:
+# Outputs: redirect
+@app.route("/")
+def index():
+    return redirect(url_for("home"))
+
+
+# Name: home
 # Purpose: listen for get requests, render main page
 # Inputs:
 # Outputs: rendered html
-@app.route("/")
-def index():
+@app.route("/home")
+def home():
     return render_template("index" + DEV + ".html")
 
 
@@ -450,7 +459,8 @@ def finish():
             resp.set_cookie("data", "", expires=0)
             return resp
         # Return basic played finish
-        resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4]), played=played))
+        resp = make_response(render_template("finish" + DEV + ".html", name=name,
+                                             time=(player[5] - player[4]), played=played))
         resp.set_cookie("data", "", expires=0)
         return resp
 
