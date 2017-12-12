@@ -29,6 +29,7 @@ Before you run `server.py`, edit the following variables to match your desired c
 | POSSIBLE\_COMPLETED | 4               | Integer | Number of puzzles a player is required to complete     |
 | DEBUG               | True            | Boolean | Run flask in debug mode or not                         |
 | TESTING             | False           | Boolean | Add override for answers in testing                    |
+| DEV                 | ""              | String  | prefix of the final name before the .html              |
 | DATABASE            | "data.db"       | String  | Database to use                                        |
 | PASSWORD            | "testpass"      | String  | Password to use for authenticating statistics requests |
 | TO                  | "test@test.com" | String  | Email for sending statistics to                        |

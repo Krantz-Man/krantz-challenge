@@ -19,6 +19,7 @@ ADDRESS = "127.0.0.1"
 PORT = 5000
 DEBUG = True
 TESTING = True  # TODO: change to default value (False)
+DEV = ".dev"  # TODO: change to default value ("")
 DATABASE = "data.db"
 PASSWORD = "testpass"
 DOMAIN = "mg.alexkrantz.com"  # TODO: change to default value ("test.com")
@@ -354,7 +355,7 @@ def query():
 # Outputs: rendered html
 @app.route("/")
 def index():
-    return render_template("index.dev.html")
+    return render_template("index" + DEV + ".html")
 
 
 # Name: start
@@ -373,7 +374,7 @@ def start():
             # Update tamper statistics
             STATISTICS["Tamper Attempts"] += 1
 
-            resp = make_response(render_template("tamperer.dev.html"))
+            resp = make_response(render_template("tamperer" + DEV + ".html"))
             # Remove data cookie
             resp.set_cookie("data", "", expires=0)
             return resp
@@ -398,7 +399,7 @@ def start():
 def finish():
     # Check user has started
     if not request.cookies.get("data"):
-        return render_template("tamperer.dev.html")
+        return render_template("tamperer" + DEV + ".html")
 
     # Get cookie data
     cookie = get_data_from_cookie()
@@ -410,16 +411,16 @@ def finish():
         STATISTICS["Tamper Attempts"] += 1
 
         # Remove data cookie
-        resp = make_response(render_template("tamperer.dev.html"))
+        resp = make_response(render_template("tamperer" + DEV + ".html"))
         resp.set_cookie("data", "", expires=0)
         return resp
 
     if request.method == "GET":
         c = Finishers.query(cookie[0])
         if c:
-            return render_template("finish.dev.html", name=c[1], time=c[2])
+            return render_template("finish" + DEV + ".html", name=c[1], time=c[2])
 
-        return render_template("pre-finish.dev.html")
+        return render_template("pre-finish" + DEV + ".html")
 
     # Get form data
     name = request.form.get("name")
@@ -444,12 +445,12 @@ def finish():
     if played:
         # Check if has highscore
         if STATISTICS["Highscore"][0] == name:
-            resp = make_response(render_template("finish.dev.html", name=name, time=(player[5] - player[4]),
+            resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4]),
                                                  played=played, hs=[prev[1], (prev[1] - (player[5]-player[4]))]))
             resp.set_cookie("data", "", expires=0)
             return resp
         # Return basic played finish
-        resp = make_response(render_template("finish.dev.html", name=name, time=(player[5] - player[4]), played=played))
+        resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4]), played=played))
         resp.set_cookie("data", "", expires=0)
         return resp
 
@@ -465,21 +466,22 @@ def finish():
         tamper = [POSSIBLE_COMPLETED, player[3], json.loads(player[1]).index(player[2]) + 1]
 
         # Render 'finish'
-        resp = render_template(render_template("finish.dev.html", name=name, time=(player[5] - player[4]),
+        resp = render_template(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4]),
                                                tamperer=tamper))
         resp.set_cookie("data", "", expires=0)
         return resp
 
     # Check if user got highscore
     if STATISTICS["Highscore"][0] == name:
-        resp = make_response(render_template("finish.dev.html", name=name, time=(player[5] - player[4]),
+        resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4]),
                                              hs=[prev[1], (prev[1] - (player[5]-player[4]))]))
         resp.set_cookie("pstatus", "1", expires=(time() + 316000000))
         resp.set_cookie("data", "", expires=0)
         return resp
 
     # Render finish
-    resp = make_response(render_template("finish.dev.html", name=name, time=(player[5] - player[4])))
+    resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4])))
+    resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4])))
     resp.set_cookie("pstatus", "1", expires=(time() + 316000000))
     resp.set_cookie("data", "", expires=0)
     return resp
@@ -493,7 +495,7 @@ def finish():
 def puzzle():
     # Check user has started
     if not request.cookies.get("data"):
-        return render_template("tamperer.dev.html")
+        return render_template("tamperer" + DEV + ".html")
 
     # Get cookie data
     cookie = get_data_from_cookie()
@@ -504,14 +506,14 @@ def puzzle():
         STATISTICS["Tamper Attempts"] += 1
 
         # Remove data cookie
-        resp = make_response(render_template("tamperer.dev.html"))
+        resp = make_response(render_template("tamperer" + DEV + ".html"))
         resp.set_cookie("data", "", expires=0)
         return resp
 
     # Select & return current puzzle's html
     player = UserData.query(cookie[0])
     data = Puzzles.data(player[2])
-    return render_template("puzzle.dev.html", title=data[0], prompt=data[1])
+    return render_template("puzzle" + DEV + ".html", title=data[0], prompt=data[1])
 
 
 # Name: check
@@ -522,7 +524,7 @@ def puzzle():
 def check():
     # Check if user has started
     if not request.cookies.get("data"):
-        return render_template("tamperer.dev.html")
+        return render_template("tamperer" + DEV + ".html")
 
     # Redirect to puzzle if get request
     if request.method == "GET":
@@ -536,7 +538,7 @@ def check():
         STATISTICS["Tamper Attempts"] += 1
 
         # Remove data cookie
-        resp = make_response(render_template("tamperer.dev.html"))
+        resp = make_response(render_template("tamperer" + DEV + ".html"))
         resp.set_cookie("data", "", expires=0)
         return resp
 
