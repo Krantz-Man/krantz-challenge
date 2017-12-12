@@ -633,5 +633,14 @@ def check():
     return redirect(url_for("puzzle"))
 
 
+# Name: page
+# Purpose: listen for get requests, handle 404 errors
+# Inputs:
+# Outputs: rendered html
+@app.route("/<page>")
+def page(p):
+    return render_template("404.dev.html")
+
+
 if __name__ == "__main__":
     app.run(host=ADDRESS, port=PORT, debug=DEBUG)
