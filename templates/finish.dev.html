@@ -13,24 +13,22 @@
         <li>You completed {{ tamperer[1] }} puzzles</li>
         <li>You were on puzzle {{ tamperer[2] }} of {{ tamperer[0] }}</li>
     </ul>
-    <p>This doesn't seem right now does it. Unfortunately, you will not be receiving a reward for you cheating. However mad props to you for finding a bug this serious. I will be emailing you from <a href="mailto:krantzie124@gmail.com">krantzie124@gmail.com</a> regarding how you found this bug.</p>
-    <p>Feel free to <a href="{{ url_for('start') }}">try again</a> and complete it <u><b>without</b></u> cheating to get a reward.</p>
+    <p>This doesn't seem right now does it. Unfortunately, you will not be receiving a reward for you cheating. However mad props to you for finding a bug this serious. I will be emailing you from <a href="mailto:krantzie124@gmail.com">krantzie124@gmail.com</a> regarding how you found this bug. Feel free to <a href="{{ url_for('start') }}">try again</a> and complete it <u><b>without</b></u> cheating.</p>
+    <p>If everything matches up, please <a href="mailto:krantzie124@gmail.com">email me</a> so I can fix this.</p>
     {% elif played and hs %}
     <h1>Congratulations {{ name }}!!!</h1>
-    <p>You have successfully completed Krantz's Challenge in {{ time }} seconds. In addition, you have also gotten the high score. The previous high score was {{ hs[0] }} seconds, and you beat it by {{ hs[1] }} seconds. Unfortunately, you will not receive another reward as you have already played once before.</p>
-    <p>If for some reason you still want to play again, <a href="{{ url_for('start') }}">go ahead</a>, but you still won't receive another reward.</p>
+    <p>You have successfully completed Krantz's Challenge in {{ time }} seconds. In addition, you have also gotten the high score. The previous high score was {{ hs[0] }} seconds, and you beat it by {{ hs[1] }} seconds. Unfortunately, you will not receive another reward as you have already played once before. If for some reason you still want to play again, <a href="{{ url_for('start') }}">go ahead</a>, but you still won't receive another reward.</p>
+    <p>If you think this is a mistake and you have not already gotten the highscore, <a href="mailto:krantzie124@gmail.com">email</a> me and I will check if you have not already gotten the highscore.</p>
     {% elif  played %}
     <h1>Congratulations {{ name }}!!!</h1>
-    <p>You have successfully completed Krantz's Challenge in {{ time }} seconds. Unfortunately, you will not receive another reward as this is not your first time playing.</p>
-    <p>If for some reason you still want to play yet another time, <a href="{{ url_for('start') }}">go ahead</a>, but you still won't receive another reward.</p>
+    <p>You have successfully completed Krantz's Challenge for a second time in {{ time }} seconds. If for some reason you still want to play yet another time, <a href="{{ url_for('start') }}">go ahead</a>.</p>
     {% elif hs %}
     <h1>Congratulations {{ name }}!!!</h1>
-    <p>You have successfully completed Krantz's Challenge in {{ time }} seconds. In addition, you have also gotten the high score. This means that instead of only getting $2, you will get $10. The previous high score was {{ hs[0] }} seconds, and you beat it by {{ hs[1] }} seconds.</p>
+    <p>You have successfully completed Krantz's Challenge in {{ time }} seconds. In addition, you have also gotten the high score. This means that you will get $10 for you're achievement. The previous high score was {{ hs[0] }} seconds, and you beat it by {{ hs[1] }} seconds.</p>
     <p>If you want to try to beat your highscore, <a href="{{ url_for('start') }}">go ahead</a>. Unfortunately, you won't get a second reward, even if you beat the high score again.</p>
     {% else %}
     <h1>Congratulations {{ name }}!!!</h1>
-    <p>You have successfully completed Krantz's Challenge in {{ time }} seconds. I will email you from <a href="mailto:krantzie124@gmail.com">krantzie124@gmail.com</a> in the following 24 hours about your reward.</p>
-    <p>Feel free to <a href="{{ url_for('start') }}">play again</a> if you would like. Note: you will not get a second reward.</p>
+    <p>You have successfully completed Krantz's Challenge in {{ time }} seconds. Feel free to <a href="{{ url_for('start') }}">play again</a> if you would like.</p>
     {% endif %}
     <p><a href="{{ url_for('home') }}">Home</a></p>
 </body>

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html class="js svg background-fixed" lang="en-US">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <script>
+        (function(html) {
+            html.className = html.className.replace(/\bno-js\b/, 'js')
+        })(document.documentElement);
+
+    </script>
+    <title>Krantz's Challenge</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.jpg') }}">
+    <style type="text/css">
+        html,
+        body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .social-img {
+            width: 48px;
+            height: 48px;
+        }
+
+    </style>
+    <link rel="stylesheet" id="twentyseventeen-fonts-css" href="{{ url_for('static', filename='css/css.css') }}" type="text/css" media="all">
+    <link rel="stylesheet" id="twentyseventeen-style-css" href="{{ url_for('static', filename='css/style.css') }}" type="text/css" media="all">
+    <link rel="stylesheet" id="twentyseventeen-colors-dark-css" href="{{ url_for('static', filename='css/colors-dark.css') }}" type="text/css" media="all">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css">
+    <!--[if lt IE 9]>
+<link rel='stylesheet' id='twentyseventeen-ie8-css'  href='{{ url_for('static', filename='/css/ie8.css') }}' type='text/css' media='all' />
+<![endif]-->
+    <!--[if lt IE 9]>
+<script type='text/javascript' src='{{ url_for('static', filename='/js/html5.js') }}'></script>
+<![endif]-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            /* Enable scrolling to items */
+            document.getElementById("home").scrollIntoView(true);
+            document.getElementById("about").scrollIntoView(true);
+            document.getElementById("rewards").scrollIntoView(true);
+            document.getElementById("contact").scrollIntoView(true);
+
+
+            /* Scroll to items */
+            $("#menu-item-28").click(function() {
+                $('html:not(:animated), body:not(:animated)').animate({
+                    scrollTop: $("#home").offset().top
+                }, 1000);
+            });
+
+            $("#menu-item-29").click(function() {
+                $('html:not(:animated), body:not(:animated)').animate({
+                    scrollTop: $("#about").offset().top
+                }, 1000);
+            });
+            $("#menu-item-30").click(function() {
+                $('html:not(:animated), body:not(:animated)').animate({
+                    scrollTop: $("#rewards").offset().top
+                }, 1000);
+            });
+            $("#menu-item-31").click(function() {
+                $('html:not(:animated), body:not(:animated)').animate({
+                    scrollTop: $("#contact").offset().top
+                }, 1000);
+            });
+
+
+            // Submit action for contact form
+            $("#contact-submit").click(function() {
+                alert("Submitted data: " + $("#InputName").val() + ", " + $("#InputEmail").val() + ", " + $("#Textarea").val());
+            });
+
+
+            // Change hover text on begin button
+            $(window).scroll(function() {
+                if ($("#navigation").attr("class") == "navigation-top site-navigation-fixed") {
+                    $("#begin-button").attr("title", "Good Luck!")
+                } else {
+                    $("#begin-button").attr("title", "I want to go in blind, let's go!")
+                }
+            });
+
+
+            /* Social media icon links */
+            $("#social-gh").click(function() {
+                window.open("https://github.com/akrantz01", "_blank")
+            });
+            $("#social-ig").click(function() {
+                window.open("https://www.instagram.com/krantznotalex", "_blank")
+            });
+            $("#social-li").click(function() {
+                window.open("https://www.linkedin.com/in/alex-krantz-940ab413b/", "_blank")
+            });
+            $("#social-pt").click(function() {
+                window.open("https://www.pinterest.com/krantzie124/", "_blank")
+            });
+            $("#social-tw").click(function() {
+                window.open("https://www.twitter.com/akrantz01", "_blank")
+            });
+
+
+            // Fixes weird bug
+            window.scrollTo(0, 0);
+        });
+
+    </script>
+</head>
+
+<body class="home page-template-default page page-id-17 twentyseventeen-front-page has-header-image page-one-column colors-dark">
+    <div id="page" class="site">
+        <a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+
+        <header id="masthead" class="site-header" role="banner">
+
+            <div class="custom-header">
+
+                <div class="custom-header-media">
+                    <div id="wp-custom-header" class="wp-custom-header"><img src="{{ url_for('static', filename='img/header.jpg') }}" alt="Krantz's Challenge" width="4000" height="2200"></div>
+                </div>
+
+                <div class="site-branding" style="margin-bottom: 72px;">
+                    <div class="wrap">
+
+
+                        <div class="site-branding-text">
+                            <h1 class="site-title"><a href="#" rel="home">Krantz's Challenge</a></h1>
+
+                            <p class="site-description">Best of luck to you.</p>
+                        </div>
+                        <!-- .site-branding-text -->
+
+
+                    </div>
+                    <!-- .wrap -->
+                </div>
+                <!-- .site-branding -->
+
+            </div>
+            <!-- .custom-header -->
+
+            <div class="navigation-top" id="navigation">
+                <div class="wrap">
+                    <nav id="site-navigation" class="main-navigation" role="navigation" aria-label="Top Menu">
+                        <button class="menu-toggle" aria-controls="top-menu" aria-expanded="false">
+		<svg class="icon icon-bars" aria-hidden="true" role="img"> <use href="#icon-bars" xlink:href="#icon-bars"></use> </svg><svg class="icon icon-close" aria-hidden="true" role="img"> <use href="#icon-close" xlink:href="#icon-close"></use> </svg>Menu	</button>
+
+                        <div class="menu-top-menu-container">
+                            <ul id="top-menu" class="menu">
+                                <li id="menu-item-28" class="menu-item menu-item-type-custom menu-item-object-custom current-menu-item current_page_item menu-item-home menu-item-28"><a href="#home">Home</a></li>
+                                <li id="menu-item-29" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-29"><a href="#about">About</a></li>
+                                <li id="menu-item-30" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a href="#rewards">Rewards</a></li>
+                                <li id="menu-item-31" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-30"><a href="#contact">Contact Me</a></li>
+                                <li id="menu-item-32" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-31"><a href="https://www.alexkrantz.com">Main Page</a></li>
+                                <li><a> </a></li>
+                                <li><a> </a></li>
+                                <li><a> </a></li>
+                                <li><a> </a></li>
+                                <li><a> </a></li>
+                                <li id="menu-item-33" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-33"><a href="https://www.paypal.me/akrantz01" target="_blank">Donate</a></li>
+                                <li id="menu-item-34" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-34"><a href="/start" class="begin" id="begin-button">Begin</a></li>
+                            </ul>
+                        </div>
+                        <a href="#content" class="menu-scroll-down"><svg class="icon icon-arrow-right" aria-hidden="true" role="img"> <use href="#icon-arrow-right" xlink:href="#icon-arrow-right"></use> </svg><span class="screen-reader-text">Scroll down to content</span></a>
+                    </nav>
+                    <!-- #site-navigation -->
+                </div>
+                <!-- .wrap -->
+            </div>
+            <!-- .navigation-top -->
+
+        </header>
+        <!-- #masthead -->
+
+
+        <div class="site-content-contain">
+            <div id="content" class="site-content">
+
+                <div id="primary" class="content-area">
+                    <main id="main" class="site-main" role="main">
+
+                        <article id="post-17" class="twentyseventeen-panel  post-17 page type-page status-publish hentry">
+
+
+                            <div class="panel-content" id="home">
+                                <div class="wrap">
+                                    <header class="entry-header">
+                                        <h2 class="entry-title">Home</h2>
+
+                                    </header>
+                                    <!-- .entry-header -->
+
+                                    <div class="entry-content">
+                                        <p>Welcome to <strong>Krantz's Challenge!</strong> This is little game is designed to test your reasoning, logic, and a bunch of other skills. The puzzles span many different topics from math to science to computers. If you are able to beat the current highscore, you can get a little reward. If you would like to know more, scroll down. If not, click the button above to begin.</p><br><br>
+                                        <strong>Current Highscore</strong><br>{{ name }} holds the current highscore with a time of: {{ time }} seconds.
+                                    </div>
+                                    <!-- .entry-content -->
+
+                                </div>
+                                <!-- .wrap -->
+                            </div>
+                            <!-- .panel-content -->
+
+                        </article>
+                        <!-- #post-## -->
+
+
+                        <article id="panel1" class="twentyseventeen-panel  post-21 page type-page status-publish has-post-thumbnail hentry">
+
+
+                            <div class="panel-image" style="background-image: url('{{ url_for('static', filename='img/splash.jpg') }}');">
+                                <div class="panel-image-prop" style="padding-top: 60%"></div>
+                            </div>
+                            <!-- .panel-image -->
+
+
+                            <div class="panel-content" id="about">
+                                <div class="wrap">
+                                    <header class="entry-header">
+                                        <h2 class="entry-title">About</h2>
+
+                                    </header>
+                                    <!-- .entry-header -->
+
+                                    <div class="entry-content">
+                                        <p>This challenge was made in approximately 2-3 weeks and is still kinda in development. As a result, there may be some bugs, so please bear with me and <a href="#contact">contact me</a> if you find one. I will try to add new puzzles weekly, but I am unable to guarentee this.<br> There are currently 16 puzzles in circulation, but you will get assigned 4 random ones. The entire backend of this is written in Python and if you are still curious, you can go the the <a href="https://github.com/akrantz01/krantz-challenge">GitHub page</a> where the code is hosted.
+                                    </div>
+                                    <!-- .entry-content -->
+
+
+                                </div>
+                                <!-- .wrap -->
+                            </div>
+                            <!-- .panel-content -->
+
+                        </article>
+                        <!-- #post-## -->
+
+                        <article id="panel3" class="twentyseventeen-panel  post-21 page type-page status-publish has-post-thumbnail hentry">
+
+
+                            <div class="panel-image" style="background-image: url('{{ url_for('static', filename='img/splash.jpg') }}');">
+                                <div class="panel-image-prop" style="padding-top: 60%"></div>
+                            </div>
+                            <!-- .panel-image -->
+
+
+                            <div class="panel-content" id="rewards">
+                                <div class="wrap">
+                                    <header class="entry-header">
+                                        <h2 class="entry-title">Rewards</h2>
+
+                                    </header>
+                                    <!-- .entry-header -->
+
+                                    <div class="entry-content">
+                                        I will get the payment to you as soon as possible by whatever method is most convenient at the time. I am able to pay via cryptocurrency, cash, or PayPal.
+                                        <table>
+                                            <tr>
+                                                <td>
+                                                    <div class="card" style="color: black">
+                                                        <div class="p-5">
+                                                            <h1><sup>$</sup>&nbsp;5</h1>
+                                                            <h3 style="color: black;">Bug Finder</h3>
+                                                            <hr>
+                                                            <p>For if you find a bug that is game breaking.</p>
+                                                            <a href="#" class="btn btn-dark">Begin</a>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="card">
+                                                        <div class="p-5" style="color:black;">
+                                                            <h1><sup>$</sup>&nbsp;10</h1>
+                                                            <h3 style="color: black;">Score Breaker</h3>
+                                                            <hr>
+                                                            <p>For if you break the current high score.</p>
+                                                            <a href="#" class="btn btn-dark">Begin</a>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <!-- .entry-content -->
+
+
+                                </div>
+                                <!-- .wrap -->
+                            </div>
+                            <!-- .panel-content -->
+
+                        </article>
+                        <!-- #post-## -->
+
+                        <article id="panel4" class="twentyseventeen-panel  post-19 page type-page status-publish has-post-thumbnail hentry">
+
+
+                            <div class="panel-image" style="background-image: url('{{ url_for('static', filename='img/splash.jpg') }}');">
+                                <div class="panel-image-prop" style="padding-top: 60%"></div>
+                            </div>
+                            <!-- .panel-image -->
+
+
+                            <div class="panel-content" id="contact">
+                                <div class="wrap">
+                                    <header class="entry-header">
+                                        <h2 class="entry-title">Contact</h2>
+
+                                    </header>
+                                    <!-- .entry-header -->
+
+                                    <div class="entry-content">
+                                        <form>
+                                            <div class="form-group"> <label for="InputName">Your name</label>
+                                                <input class="form-control" id="InputName" placeholder="Your name" type="text"> </div>
+                                            <div class="form-group"> <label for="InputEmail1">Email address</label>
+                                                <input class="form-control" id="InputEmail1" placeholder="Enter email" type="email"> </div>
+                                            <div class="form-group"> <label for="Textarea">Write here</label> <textarea class="form-control" id="Textarea" rows="3" placeholder="Type here"></textarea> </div>
+                                            <button id="contact-submit" type="submit" class="btn btn-secondary">Submit</button>
+                                        </form>
+
+                                    </div>
+                                    <!-- .entry-content -->
+
+
+                                </div>
+                                <!-- .wrap -->
+                            </div>
+                            <!-- .panel-content -->
+
+                        </article>
+                        <!-- #post-## -->
+
+                    </main>
+                    <!-- #main -->
+                </div>
+                <!-- #primary -->
+
+
+            </div>
+            <!-- #content -->
+
+            <footer id="colophon" class="site-footer" role="contentinfo">
+                <div class="wrap">
+
+
+                    <aside class="widget-area" role="complementary" aria-label="Footer">
+                        <div class="widget-column footer-widget-1">
+                            <section id="text-8" class="widget widget_text">
+                                <h2 class="widget-title">Contact Me</h2>
+                                <div class="textwidget">
+                                    <p><strong>Email</strong><br> krantzie124@gmail.com
+                                    </p><br>
+                                    <p><strong>Phone</strong><br>(650)-250-1986</p>
+                                </div>
+                            </section>
+                        </div>
+                        <div class="widget-column footer-widget-2">
+                            <section id="text-9" class="widget widget_text">
+                                <h2 class="widget-title">About This Site</h2>
+                                <div class="textwidget">
+                                    <p>This site was made entirely in Python 3 by Alex Krantz. If you are curious about the backend, go to the <a href="https://github.com/akrantz01/krantz-challenge">GitHub</a> repo.</p>
+                                </div>
+                                <div>
+                                    <span id="social-gh" style="cursor: pointer"><img src="{{ url_for('static', filename='img/github.png') }}" class="social-img"></span>
+                                    <span id="social-ig" style="cursor: pointer"><img src="{{ url_for('static', filename='img/instagram.png') }}" class="social-img"></span>
+                                    <span id="social-li" style="cursor: pointer"><img src="{{ url_for('static', filename='img/linkedin.png') }}" class="social-img"></span>
+                                    <span id="social-pt" style="cursor: pointer"><img src="{{ url_for('static', filename='img/pinterest.png') }}" class="social-img"></span>
+                                    <span id="social-tw" style="cursor: pointer"><img src="{{ url_for('static', filename='img/twitter.png') }}" class="social-img"></span>
+                                </div>
+                            </section>
+                        </div>
+                    </aside>
+                    <!-- .widget-area -->
+                    <div class="site-info">
+                    </div>
+                    <!-- .site-info -->
+                </div>
+                <!-- .wrap -->
+            </footer>
+            <!-- #colophon -->
+        </div>
+        <!-- .site-content-contain -->
+    </div>
+    <!-- #page -->
+    <script type="text/javascript">
+        /* <![CDATA[ */
+        var twentyseventeenScreenReaderText = {
+            "quote": "<svg class=\"icon icon-quote-right\" aria-hidden=\"true\" role=\"img\"> <use href=\"#icon-quote-right\" xlink:href=\"#icon-quote-right\"><\/use> <\/svg>",
+            "expand": "Expand child menu",
+            "collapse": "Collapse child menu",
+            "icon": "<svg class=\"icon icon-angle-down\" aria-hidden=\"true\" role=\"img\"> <use href=\"#icon-angle-down\" xlink:href=\"#icon-angle-down\"><\/use> <span class=\"svg-fallback icon-angle-down\"><\/span><\/svg>"
+        };
+        /* ]]> */
+
+    </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/skip-link-focus-fix.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/navigation.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/global.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery_002.js') }}"></script>
+    <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink">
+<defs>
+<symbol id="icon-arrow-right" viewBox="0 0 43 32">
+<path class="path1" d="M0.356 17.956c0.178 0.178 0.533 0.356 0.711 0.356h33.778l-10.311 10.489c-0.178 0.178-0.356 0.533-0.356 0.711 0 0.356 0.178 0.533 0.356 0.711l1.6 1.6c0.178 0.178 0.533 0.356 0.711 0.356s0.533-0.178 0.711-0.356l14.756-14.933c0.178-0.356 0.356-0.711 0.356-0.889s-0.178-0.533-0.356-0.711l-14.756-14.933c0-0.178-0.356-0.356-0.533-0.356s-0.533 0.178-0.711 0.356l-1.6 1.6c-0.178 0.178-0.356 0.533-0.356 0.711s0.178 0.533 0.356 0.711l10.311 10.489h-33.778c-0.178 0-0.533 0.178-0.711 0.356-0.356 0.178-0.533 0.356-0.533 0.711v2.311c0 0.178 0.178 0.533 0.356 0.711z"></path>
+</symbol>
+</defs>
+</svg>
+
+
+
+</body>
+
+</html>
+
