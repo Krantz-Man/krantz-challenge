@@ -11,18 +11,18 @@ import requests
 app = Flask(__name__)
 STATISTICS = {"Players": 0, "Completions": 0, "Tamper Attempts": 0,
               "Finishers": [], "Highscore": ["None", 1024], "Tamperers": []}
-TO = "krantzie124@gmail.com"  # TODO: change to default value ("test@test.com")
-FROM = "Game Info <mailgun@mg.alexkrantz.com>"  # TODO: change to default value ("test@test.com")
-APIKEY = "key-ad17fb62543c603f85282ff31b8c602d"  # TODO: change to default value ("key")
+TO = "test@test.com"
+FROM = "Game Info <test@test.com>"
+APIKEY = "key"
 POSSIBLE_COMPLETED = 4
 ADDRESS = "127.0.0.1"
 PORT = 5000
 DEBUG = True
-TESTING = True  # TODO: change to default value (False)
-DEV = ""  # TODO: change to default value ("")
+TESTING = False
+DEV = ""
 DATABASE = "data.db"
 PASSWORD = "testpass"
-DOMAIN = "mg.alexkrantz.com"  # TODO: change to default value ("test.com")
+DOMAIN = "test.com"
 
 
 # Name: Finishers
