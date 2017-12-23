@@ -19,7 +19,7 @@ ADDRESS = "127.0.0.1"
 PORT = 5000
 DEBUG = True
 TESTING = True  # TODO: change to default value (False)
-DEV = ".dev"  # TODO: change to default value ("")
+DEV = ""  # TODO: change to default value ("")
 DATABASE = "data.db"
 PASSWORD = "testpass"
 DOMAIN = "mg.alexkrantz.com"  # TODO: change to default value ("test.com")
@@ -56,7 +56,7 @@ class Finishers(object):
         connection = sqlite3.connect(DATABASE)
 
         # Insert into table
-        connection.execute("INSERT INTO finishers VALUES (?, ?, ?, ?)", [uid, name, email, total_time])
+        connection.execute("INSERT INTO finishers VALUES (?, ?, ?, ?)", [uid, name, total_time, email])
 
         # Close connection
         connection.commit()
@@ -364,7 +364,7 @@ def index():
 # Outputs: rendered html
 @app.route("/home")
 def home():
-    return render_template("index" + DEV + ".html")
+    return render_template("index" + DEV + ".html", name=STATISTICS["Highscore"][0], time=STATISTICS["Highscore"][1])
 
 
 # Name: start
@@ -523,7 +523,7 @@ def puzzle():
     # Select & return current puzzle's html
     player = UserData.query(cookie[0])
     data = Puzzles.data(player[2])
-    return render_template("puzzle" + DEV + ".html", title=data[0], prompt=data[1])
+    return render_template("puzzle" + DEV + ".html", title=data[0], prompt=data[1], number=json.loads(player[1]).index(player[2]) + 1)
 
 
 # Name: check
@@ -639,7 +639,7 @@ def check():
 # Outputs: rendered html
 @app.route("/<p>")
 def page(p):
-    return render_template("404.dev.html", page=p)
+    return render_template("404" + DEV + ".html", page=p)
 
 
 if __name__ == "__main__":
