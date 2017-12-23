@@ -110,3 +110,7 @@ venv.bak/
 # PyCharm files
 .idea/
 .idea
+
+# Sensitive files
+data.db
+pages.txt
