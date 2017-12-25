@@ -114,3 +114,4 @@ venv.bak/
 # Sensitive files
 data.db
 pages.txt
+values.txt
