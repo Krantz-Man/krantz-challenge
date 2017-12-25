@@ -72,7 +72,16 @@
 
             // Submit action for contact form
             $("#contact-submit").click(function() {
-                alert("Submitted data: " + $("#InputName").val() + ", " + $("#InputEmail").val() + ", " + $("#Textarea").val());
+                var values = {name: $("#InputName").val(), email: $("#InputEmail").val(), message: $("#Textarea").val()};
+                $.ajax({
+                    url: "https://formspree.io/krantzie124@gmail.com",
+                    method: "POST",
+                    data: values,
+                    dataType: "json"
+                });
+                $("#InputName").val("");
+                $("#InputEmail").val("");
+                $("#Textarea").val("");
             });
 
 
@@ -318,8 +327,8 @@
                                         <form>
                                             <div class="form-group"> <label for="InputName">Your name</label>
                                                 <input class="form-control" id="InputName" placeholder="Your name" type="text"> </div>
-                                            <div class="form-group"> <label for="InputEmail1">Email address</label>
-                                                <input class="form-control" id="InputEmail1" placeholder="Enter email" type="email"> </div>
+                                            <div class="form-group"> <label for="InputEmail">Email address</label>
+                                                <input class="form-control" id="InputEmail" placeholder="Enter email" type="email"> </div>
                                             <div class="form-group"> <label for="Textarea">Write here</label> <textarea class="form-control" id="Textarea" rows="3" placeholder="Type here"></textarea> </div>
                                             <button id="contact-submit" type="submit" class="btn btn-secondary">Submit</button>
                                         </form>

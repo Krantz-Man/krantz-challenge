@@ -241,41 +241,91 @@ class UserData(object):
         connection.close()
 
 
-# Name: send_stats
-# Purpose: send overall game statistics
-# Inputs:
-# Outputs: status code
-def send_stats():
-    # Format finishers
-    finishers = ""
-    for i, finisher in enumerate(STATISTICS["Finishers"]):
-        finishers += "\t" + str(i + 1) + ": "
-        finishers += "Name: " + finisher["name"] + ", "
-        finishers += "Email: " + finisher["email"] + ", "
-        finishers += "Time: " + str(finisher["time"]) + " seconds\n"
+# Name: Send
+# Purpose: send emails to specified address
+class Send(object):
+    # Name: stats
+    # Purpose: send the game statistics
+    # Inputs:
+    # Outputs:
+    @staticmethod
+    def stats():
+        # Format finishers
+        finishers = ""
+        for i, finisher in enumerate(STATISTICS["Finishers"]):
+            finishers += "\t" + str(i + 1) + ":\n"
+            finishers += "\t\tName: " + finisher["name"] + ",\n"
+            finishers += "\t\tEmail: " + finisher["email"] + ",\n"
+            finishers += "\t\tTime: " + str(finisher["time"]) + " seconds\n"
 
-    # Format tamperers
-    tamperers = ""
-    for i, tamperer in enumerate(STATISTICS["Tamperers"]):
-        tamperers += "\t" + str(i + 1) + ": "
-        tamperers += "Name: " + tamperer["name"] + ", "
-        tamperers += "Email: " + tamperer["email"] + "\n"
+        # Format tamperers
+        tamperers = ""
+        for i, tamperer in enumerate(STATISTICS["Tamperers"]):
+            tamperers += "\t" + str(i + 1) + ":\n"
+            tamperers += "\t\tName: " + tamperer["name"] + ",\n"
+            tamperers += "\t\tEmail: " + tamperer["email"] + "\n"
 
-    body = "Sent on: " + strftime("%m-%d-%Y %H:%M:%S") + "\n\n" + \
-           "\nPlay Statistics:\n\tPlayers: " + str(STATISTICS["Players"]) + \
-           "\n\tCompletions: " + str(STATISTICS["Completions"]) + \
-           "\n\tAttempted Tampers: " + str(STATISTICS["Tamper Attempts"]) + \
-           "\n\tHighscore Holder: " + str(STATISTICS["Highscore"][0]) + \
-           " with a time of " + str(STATISTICS["Highscore"][1]) + " seconds" + \
-           "\n\nFinishers:\n" + finishers + \
-           "\n\nTamperers:\n" + tamperers
-    a = ("api", APIKEY)
-    d = {"from": FROM,
-         "to": TO,
-         "subject": "Krantz's Challenge Play Statistics",
-         "text": body
-         }
-    return requests.post("https://api.mailgun.net/v3/" + DOMAIN + "/messages", auth=a, data=d)
+        body = "Sent on: " + strftime("%m-%d-%Y %H:%M:%S") + "\n\n" + \
+            "\nPlay Statistics:\n\tPlayers: " + str(STATISTICS["Players"]) + \
+            "\n\tCompletions: " + str(STATISTICS["Completions"]) + \
+            "\n\tAttempted Tampers: " + str(STATISTICS["Tamper Attempts"]) + \
+            "\n\tHighscore Holder: " + str(STATISTICS["Highscore"][0]) + \
+            "with a time of " + str(STATISTICS["Highscore"][1]) + " seconds" + \
+            "\n\nFinishers:\n" + finishers + \
+            "\n\nTamperers:\n" + tamperers
+        a = ("api", APIKEY)
+        d = {"from": FROM,
+             "to": TO,
+             "subject": "Krantz's Challenge: Play Statistics",
+             "text": body
+             }
+        return requests.post("https://api.mailgun.net/v3/" + DOMAIN + "/messages", auth=a, data=d)
+
+    # Name: finisher
+    # Purpose: send stats of new finisher
+    # Inputs: hs as boolean
+    # Outputs:
+    @staticmethod
+    def finisher(player, hs=False):
+        # Get puzzles
+        puzzles = ""
+        for i, puzzle in enumerate(json.loads(player[1])):
+            puzzles += "\t\t" + str(i + 1) + ": " + puzzle + "\n"
+
+        body = "New Finisher on " + strftime("%m-%d-%Y %H:%M:%S") + \
+            ":\n\tName: " + STATISTICS["Finishers"][len(STATISTICS["Finishers"]) - 1]["name"] + ",\n" + \
+            "\tEmail: " + STATISTICS["Finishers"][len(STATISTICS["Finishers"]) - 1]["email"] + ",\n" + \
+            "\tTime: " + str(STATISTICS["Finishers"][len(STATISTICS["Finishers"]) - 1]["time"]) + " seconds\n" + \
+            "\tAssigned Puzzles: " + puzzles
+
+        if hs:
+            body += "New Highscore! Contact them & give them their reward."
+
+        a = ("api", APIKEY)
+        d = {"from": FROM,
+             "to": TO,
+             "subject": "Krantz's Challenge: New Finisher",
+             "text": body
+             }
+        return requests.post("https://api.mailgun.net/v3/" + DOMAIN + "/messages", auth=a, data=d)
+
+    # Name: tamperer
+    # Purpose: send stats of new tamperer
+    # Inputs:
+    # Outputs:
+    @staticmethod
+    def tamperer():
+        body = "New Tamperer on " + strftime("%m-%d-%Y %H:%M:%S") + \
+            ":\n\tName: " + STATISTICS["Tamperers"][len(STATISTICS["Tamperers"]) - 1]["name"] + ",\n" + \
+            "\tEmail: " + STATISTICS["Tamperers"][len(STATISTICS["Tamperers"]) - 1]["email"] + ",\n" + \
+            "Contact this person to find out the bug."
+        a = ("api", APIKEY)
+        d = {"from": FROM,
+             "to": TO,
+             "subject": "Krantz's Challenge: New Tamperer",
+             "text": body
+             }
+        return requests.post("https://api.mailgun.net/v3/" + DOMAIN + "/messages", auth=a, data=d)
 
 
 # Name: get_data_from_cookie
@@ -345,7 +395,7 @@ def query():
         return jsonify({"status": "failure"})
 
     # Send game statistics
-    send_stats()
+    Send.stats()
     return jsonify({"status": "success"})
 
 
@@ -426,6 +476,10 @@ def finish():
 
     if request.method == "GET":
         c = Finishers.query(cookie[0])
+        u = UserData.query(cookie[0])
+        if u[3] != 4:
+            return redirect(url_for("puzzle"))
+
         if c:
             return render_template("finish" + DEV + ".html", name=c[1], time=c[2])
 
@@ -438,7 +492,7 @@ def finish():
     # Insert into finishers database
     player = UserData.query(cookie[0])
     if player[6] != 1:
-        Finishers.insert(cookie[0], name, email, player[5])
+        Finishers.insert(cookie[0], name, email, (player[5] - player[4]))
 
     # Update completions & finishers
     STATISTICS["Completions"] += 1
@@ -450,20 +504,6 @@ def finish():
         prev = STATISTICS["Highscore"]
         STATISTICS["Highscore"] = [name, (player[5]-player[4])]
 
-    # Check if already played
-    if played:
-        # Check if has highscore
-        if STATISTICS["Highscore"][0] == name:
-            resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4]),
-                                                 played=played, hs=[prev[1], (prev[1] - (player[5]-player[4]))]))
-            resp.set_cookie("data", "", expires=0)
-            return resp
-        # Return basic played finish
-        resp = make_response(render_template("finish" + DEV + ".html", name=name,
-                                             time=(player[5] - player[4]), played=played))
-        resp.set_cookie("data", "", expires=0)
-        return resp
-
     # Check if tampered
     if player[6] == 1:
         # Remove from completions,finishers,highscore & add to tamperers
@@ -472,25 +512,54 @@ def finish():
         if STATISTICS["Highscore"][0] == name:
             STATISTICS["Highscore"] = prev
 
+        # Notify new Tamperer
+        Send.tamperer()
+
         # Load tamper data
         tamper = [POSSIBLE_COMPLETED, player[3], json.loads(player[1]).index(player[2]) + 1]
 
         # Render 'finish'
-        resp = render_template(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4]),
+        resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4]),
                                                tamperer=tamper))
+        resp.set_cookie("data", "", expires=0)
+        return resp
+
+    # Check if already played
+    if played:
+        # Check if has highscore
+        if STATISTICS["Highscore"][0] == name:
+            # Notify new highscore
+            Send.finisher(player, True)
+
+            resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4]),
+                                                 played=played, hs=[prev[1], (prev[1] - (player[5]-player[4]))]))
+            resp.set_cookie("data", "", expires=0)
+            return resp
+
+        # Notify new finisher
+        Send.finisher(player)
+
+        # Return basic played finish
+        resp = make_response(render_template("finish" + DEV + ".html", name=name,
+                                             time=(player[5] - player[4]), played=played))
         resp.set_cookie("data", "", expires=0)
         return resp
 
     # Check if user got highscore
     if STATISTICS["Highscore"][0] == name:
+        # Notify new highscore
+        Send.finisher(player, True)
+
         resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4]),
                                              hs=[prev[1], (prev[1] - (player[5]-player[4]))]))
         resp.set_cookie("pstatus", "1", expires=(time() + 316000000))
         resp.set_cookie("data", "", expires=0)
         return resp
 
+    # Notify new finisher
+    Send.finisher(player)
+
     # Render finish
-    resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4])))
     resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4])))
     resp.set_cookie("pstatus", "1", expires=(time() + 316000000))
     resp.set_cookie("data", "", expires=0)
