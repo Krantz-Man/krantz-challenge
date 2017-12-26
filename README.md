@@ -1,5 +1,5 @@
 # Krantz-Challenge
-###### Version: 0.1.112917
+###### Version: 0.1.122617
 
 
 ## Overview
@@ -24,18 +24,20 @@ Before you run `server.py`, edit the following variables to match your desired c
 
 | Variable            | Default Value   | Format  | Description                                            |
 | ------------------- | --------------- | ------- | ------------------------------------------------------ |
+| TO                  | "test@test.com" | String  | Email for sending statistics to                        |
+| FROM                | "test@test.com" | String  | Mailgun email for sending statistics from              |
+| MG_APIKEY           | "key"           | String  | Mailgun API key                                        |
+| GH_API              | "username:key"  | String  | Github username and personal access token              |
+| GH_ID               | "id"            | String  | Github Gist id                                         |
+| POSSIBLE\_COMPLETED | 4               | Integer | Number of puzzles a player is required to complete     |
 | ADDRESS             | "127.0.0.1"     | String  | Address for Flask to listen on                         |
 | PORT                | 5000            | Integer | Port for Flask to run on                               |
-| POSSIBLE\_COMPLETED | 4               | Integer | Number of puzzles a player is required to complete     |
 | DEBUG               | True            | Boolean | Run flask in debug mode or not                         |
 | TESTING             | False           | Boolean | Add override for answers in testing                    |
 | DEV                 | ""              | String  | prefix of the final name before the .html              |
 | DATABASE            | "data.db"       | String  | Database to use                                        |
-| PASSWORD            | "testpass"      | String  | Password to use for authenticating statistics requests |
-| TO                  | "test@test.com" | String  | Email for sending statistics to                        |
-| FROM                | "test@test.com" | String  | Mailgun email for sending statistics from              |
-| APIKEY              | "key"           | String  | Mailgun API key                                        |
 | DOMAIN              | "test.com"      | String  | Mailgun registered domain to send from                 |
+| TIME                | 900             | Integer | Amount of time between statistics reporting            |
 
 Type the following into the terminal (Linux/MacOS) or command prompt (Windows): `python3 server.py`
 
