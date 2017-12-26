@@ -1,8 +1,9 @@
-from flask import Flask, make_response, request, redirect, url_for, render_template, jsonify
+from flask import Flask, make_response, request, redirect, url_for, render_template
 from os import urandom
 from binascii import hexlify
 from random import choice, shuffle
 from time import time, strftime
+from threading import Thread
 from hashlib import sha512
 import json
 import sqlite3
@@ -13,7 +14,9 @@ STATISTICS = {"Players": 0, "Completions": 0, "Tamper Attempts": 0,
               "Finishers": [], "Highscore": ["None", 1024], "Tamperers": []}
 TO = "test@test.com"
 FROM = "Game Info <test@test.com>"
-APIKEY = "key"
+MG_APIKEY = "key"
+GH_API = "username:key"
+GH_ID = "id"
 POSSIBLE_COMPLETED = 4
 ADDRESS = "127.0.0.1"
 PORT = 5000
@@ -21,8 +24,8 @@ DEBUG = True
 TESTING = False
 DEV = ""
 DATABASE = "data.db"
-PASSWORD = "testpass"
 DOMAIN = "test.com"
+TIME = 900
 
 
 # Name: Finishers
@@ -247,50 +250,58 @@ class Send(object):
     # Name: stats
     # Purpose: send the game statistics
     # Inputs:
-    # Outputs:
+    # Outputs: dict
     @staticmethod
     def stats():
         # Format finishers
-        finishers = ""
+        finishers = "# Finishers\n###### Updated On: " + strftime("%m-%d-%Y %H:%M:%S") + "\n\n"
         for i, finisher in enumerate(STATISTICS["Finishers"]):
-            finishers += "\t" + str(i + 1) + ":\n"
-            finishers += "\t\tName: " + finisher["name"] + ",\n"
-            finishers += "\t\tEmail: " + finisher["email"] + ",\n"
-            finishers += "\t\tTime: " + str(finisher["time"]) + " seconds\n"
+            finishers += "Player " + str(i + 1) + ":\n"
+            finishers += "* Name: " + finisher["name"] + "\n"
+            finishers += "* Email: " + finisher["email"] + "\n"
+            finishers += "* Time: " + str(finisher["time"]) + " seconds\n\n"
 
         # Format tamperers
-        tamperers = ""
+        tamperers = "# Tamperers\n###### Updated On: " + strftime("%m-%d-%Y %H:%M:%S") + "\n\n"
         for i, tamperer in enumerate(STATISTICS["Tamperers"]):
-            tamperers += "\t" + str(i + 1) + ":\n"
-            tamperers += "\t\tName: " + tamperer["name"] + ",\n"
-            tamperers += "\t\tEmail: " + tamperer["email"] + "\n"
+            tamperers += "Tamperer " + str(i + 1) + ":\n"
+            tamperers += "* Name: " + tamperer["name"] + "\n"
+            tamperers += "* Email: " + tamperer["email"] + "\n\n"
 
-        body = "Sent on: " + strftime("%m-%d-%Y %H:%M:%S") + "\n\n" + \
-            "\nPlay Statistics:\n\tPlayers: " + str(STATISTICS["Players"]) + \
-            "\n\tCompletions: " + str(STATISTICS["Completions"]) + \
-            "\n\tAttempted Tampers: " + str(STATISTICS["Tamper Attempts"]) + \
-            "\n\tHighscore Holder: " + str(STATISTICS["Highscore"][0]) + \
-            "with a time of " + str(STATISTICS["Highscore"][1]) + " seconds" + \
-            "\n\nFinishers:\n" + finishers + \
-            "\n\nTamperers:\n" + tamperers
-        a = ("api", APIKEY)
-        d = {"from": FROM,
-             "to": TO,
-             "subject": "Krantz's Challenge: Play Statistics",
-             "text": body
-             }
-        return requests.post("https://api.mailgun.net/v3/" + DOMAIN + "/messages", auth=a, data=d)
+        generic = "# Generic Stats\n###### Updated on: " + strftime("%m-%d-%Y %H:%M:%S") + \
+            "\n\nTotal Players: " + str(STATISTICS["Players"]) + \
+            "\n\nTotal Completions: " + str(STATISTICS["Completions"]) + \
+            "\n\nAttempted Tampers: " + str(STATISTICS["Tamper Attempts"]) + \
+            "\n\nHighscore Holder:\n* Name: " + STATISTICS["Highscore"][0] + \
+            "\n* Time: " + str(STATISTICS["Highscore"][1]) + " seconds\n"
+
+        data = {
+            "description": "Krantz's Challenge Play Statistics",
+            "files": {
+                "generic.md": {
+                    "content": generic
+                },
+                "finishers.md": {
+                    "content": finishers
+                },
+                "tamperers.md": {
+                    "content": tamperers
+                }
+            }
+        }
+
+        return data
 
     # Name: finisher
     # Purpose: send stats of new finisher
     # Inputs: hs as boolean
-    # Outputs:
+    # Outputs: status code
     @staticmethod
     def finisher(player, hs=False):
         # Get puzzles
         puzzles = ""
-        for i, puzzle in enumerate(json.loads(player[1])):
-            puzzles += "\t\t" + str(i + 1) + ": " + puzzle + "\n"
+        for i, p in enumerate(json.loads(player[1])):
+            puzzles += "\t\t" + str(i + 1) + ": " + p + "\n"
 
         body = "New Finisher on " + strftime("%m-%d-%Y %H:%M:%S") + \
             ":\n\tName: " + STATISTICS["Finishers"][len(STATISTICS["Finishers"]) - 1]["name"] + ",\n" + \
@@ -301,7 +312,7 @@ class Send(object):
         if hs:
             body += "New Highscore! Contact them & give them their reward."
 
-        a = ("api", APIKEY)
+        a = ("api", MG_APIKEY)
         d = {"from": FROM,
              "to": TO,
              "subject": "Krantz's Challenge: New Finisher",
@@ -312,20 +323,53 @@ class Send(object):
     # Name: tamperer
     # Purpose: send stats of new tamperer
     # Inputs:
-    # Outputs:
+    # Outputs: status code
     @staticmethod
     def tamperer():
         body = "New Tamperer on " + strftime("%m-%d-%Y %H:%M:%S") + \
             ":\n\tName: " + STATISTICS["Tamperers"][len(STATISTICS["Tamperers"]) - 1]["name"] + ",\n" + \
             "\tEmail: " + STATISTICS["Tamperers"][len(STATISTICS["Tamperers"]) - 1]["email"] + ",\n" + \
             "Contact this person to find out the bug."
-        a = ("api", APIKEY)
+        a = ("api", MG_APIKEY)
         d = {"from": FROM,
              "to": TO,
              "subject": "Krantz's Challenge: New Tamperer",
              "text": body
              }
         return requests.post("https://api.mailgun.net/v3/" + DOMAIN + "/messages", auth=a, data=d)
+
+
+# Name: Reporter
+# Purpose: report game statistics to secret gist
+class Reporter(Thread):
+    # Name: __init__
+    # Purpose: initialize values
+    # Inputs:
+    # Outputs
+    def __init__(self):
+        self.exec = time() + TIME
+        self.exit = False
+        super().__init__()
+
+    # Name: run
+    # Purpose: run reporting loop
+    # Inputs:
+    # Outputs:
+    def run(self):
+        while True:
+            if self.exec == time():
+                print("Ran")
+                requests.patch("https://api.github.com/gists/" + GH_ID, json=Send.stats(), auth=tuple(GH_API.split(":")))
+                self.exec = time() + TIME
+            if self.exit:
+                break
+
+    # Name: stop
+    # Purpose: stop reporting loop
+    # Inputs:
+    # Outputs
+    def stop(self):
+        self.exit = True
 
 
 # Name: get_data_from_cookie
@@ -378,25 +422,6 @@ def create_user():
 
     # Return string to go in cookie
     return uid + "." + sha512(uid.encode()).hexdigest()
-
-
-# Name: query
-# Purpose: listen for put requests, send email w/ game statistics
-# Inputs:
-# Outputs: empty string
-@app.route("/query", methods=["PUT", "GET"])
-def query():
-    # Check if get request
-    if request.method == "GET":
-        return redirect(url_for("home"))
-
-    # Check if password is valid
-    if request.json.get("pass") != PASSWORD:
-        return jsonify({"status": "failure"})
-
-    # Send game statistics
-    Send.stats()
-    return jsonify({"status": "success"})
 
 
 # Name: index
@@ -519,8 +544,8 @@ def finish():
         tamper = [POSSIBLE_COMPLETED, player[3], json.loads(player[1]).index(player[2]) + 1]
 
         # Render 'finish'
-        resp = make_response(render_template("finish" + DEV + ".html", name=name, time=(player[5] - player[4]),
-                                               tamperer=tamper))
+        resp = make_response(render_template("finish" + DEV + ".html", name=name,
+                                             time=(player[5] - player[4]), tamperer=tamper))
         resp.set_cookie("data", "", expires=0)
         return resp
 
@@ -592,7 +617,8 @@ def puzzle():
     # Select & return current puzzle's html
     player = UserData.query(cookie[0])
     data = Puzzles.data(player[2])
-    return render_template("puzzle" + DEV + ".html", title=data[0], prompt=data[1], number=json.loads(player[1]).index(player[2]) + 1)
+    return render_template("puzzle" + DEV + ".html", title=data[0], prompt=data[1],
+                           number=json.loads(player[1]).index(player[2]) + 1)
 
 
 # Name: check
@@ -712,4 +738,12 @@ def page(p):
 
 
 if __name__ == "__main__":
+    # Start reporting loop
+    report = Reporter()
+    report.start()
+
+    # Run main app
     app.run(host=ADDRESS, port=PORT, debug=DEBUG)
+
+    # Stop reporting loop
+    report.stop()
