@@ -254,19 +254,21 @@ class Send(object):
     @staticmethod
     def stats():
         # Format finishers
-        finishers = "# Finishers\n###### Updated On: " + strftime("%m-%d-%Y %H:%M:%S") + "\n\n"
+        finishers = "# Finishers\n###### Updated On: " + strftime("%m-%d-%Y %H:%M:%S") + \
+                    "\n\nNumber | Name | Email | Time\n------ | ---- | ----- | ----\n"
         for i, finisher in enumerate(STATISTICS["Finishers"]):
-            finishers += "Player " + str(i + 1) + ":\n"
-            finishers += "* Name: " + finisher["name"] + "\n"
-            finishers += "* Email: " + finisher["email"] + "\n"
-            finishers += "* Time: " + str(finisher["time"]) + " seconds\n\n"
+            finishers += str(i + 1) + " | "
+            finishers += finisher["name"] + " | "
+            finishers += finisher["email"] + " | "
+            finishers += str(finisher["time"]) + "\n"
 
         # Format tamperers
-        tamperers = "# Tamperers\n###### Updated On: " + strftime("%m-%d-%Y %H:%M:%S") + "\n\n"
+        tamperers = "# Tamperers\n###### Updated On: " + strftime("%m-%d-%Y %H:%M:%S") + \
+                    "\n\nNumber | Name | Email\n------ | ---- | -----\n"
         for i, tamperer in enumerate(STATISTICS["Tamperers"]):
-            tamperers += "Tamperer " + str(i + 1) + ":\n"
-            tamperers += "* Name: " + tamperer["name"] + "\n"
-            tamperers += "* Email: " + tamperer["email"] + "\n\n"
+            tamperers += str(i + 1) + " | "
+            tamperers += tamperer["name"] + " | "
+            tamperers += tamperer["email"] + "\n"
 
         generic = "# Generic Stats\n###### Updated on: " + strftime("%m-%d-%Y %H:%M:%S") + \
             "\n\nTotal Players: " + str(STATISTICS["Players"]) + \
@@ -359,7 +361,8 @@ class Reporter(Thread):
         while True:
             if self.exec == time():
                 print("Ran")
-                requests.patch("https://api.github.com/gists/" + GH_ID, json=Send.stats(), auth=tuple(GH_API.split(":")))
+                requests.patch("https://api.github.com/gists/" + GH_ID,
+                               json=Send.stats(), auth=tuple(GH_API.split(":")))
                 self.exec = time() + TIME
             if self.exit:
                 break
