@@ -72,7 +72,11 @@
 
             // Submit action for contact form
             $("#contact-submit").click(function() {
-                var values = {name: $("#InputName").val(), email: $("#InputEmail").val(), message: $("#Textarea").val()};
+                var values = {
+                    name: $("#InputName").val(),
+                    email: $("#InputEmail").val(),
+                    message: $("#Textarea").val()
+                };
                 $.ajax({
                     url: "https://formspree.io/krantzie124@gmail.com",
                     method: "POST",
@@ -204,7 +208,7 @@
                                     <!-- .entry-header -->
 
                                     <div class="entry-content">
-                                        <p>Welcome to <strong>Krantz's Challenge!</strong> This is little game is designed to test your reasoning, logic, and a bunch of other skills. The puzzles span many different topics from math to science to computers. If you are able to beat the current highscore, you can get a little reward. If you would like to know more, scroll down. If not, click the button above to begin.</p><br><br>
+                                        <p>Welcome to <strong>Krantz's Challenge!</strong> This is little game is designed to test your reasoning, logic, and a bunch of other skills. The puzzles span many different topics from math to science to computers. Complete each puzzle through any way possible, but be warned, your progress will be erased if you are caught. If you are able to beat the current highscore, you can get a little reward. If you would like to know more, scroll down. If not, click the button above to begin.</p><br><br>
                                         <strong>Current Highscore</strong><br>{{ name }} holds the current highscore with a time of: {{ time }} seconds.
                                     </div>
                                     <!-- .entry-content -->
@@ -425,4 +429,3 @@
 </body>
 
 </html>
-
