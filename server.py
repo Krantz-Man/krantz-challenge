@@ -360,7 +360,6 @@ class Reporter(Thread):
     def run(self):
         while True:
             if self.exec == time():
-                print("Ran")
                 requests.patch("https://api.github.com/gists/" + GH_ID,
                                json=Send.stats(), auth=tuple(GH_API.split(":")))
                 self.exec = time() + TIME
