@@ -25,7 +25,7 @@ TESTING = False
 DEV = ""
 DATABASE = "data.db"
 DOMAIN = "test.com"
-TIME = 900
+TIME = 3600
 
 
 # Name: Finishers
@@ -734,9 +734,9 @@ def check():
 # Purpose: listen for get requests, handle 404 errors
 # Inputs:
 # Outputs: rendered html
-@app.route("/<p>")
-def page(p):
-    return render_template("404" + DEV + ".html", page=p)
+@app.route("/<path:path>")
+def page(path):
+    return render_template("404" + DEV + ".html", page=path)
 
 
 if __name__ == "__main__":
