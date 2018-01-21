@@ -341,39 +341,6 @@ class Send(object):
         return requests.post("https://api.mailgun.net/v3/" + DOMAIN + "/messages", auth=a, data=d)
 
 
-# Name: Reporter
-# Purpose: report game statistics to secret gist
-class Reporter(Thread):
-    # Name: __init__
-    # Purpose: initialize values
-    # Inputs:
-    # Outputs
-    def __init__(self):
-        self.exec = time() + TIME
-        self.exit = False
-        super().__init__()
-
-    # Name: run
-    # Purpose: run reporting loop
-    # Inputs:
-    # Outputs:
-    def run(self):
-        while True:
-            if self.exec == time():
-                requests.patch("https://api.github.com/gists/" + GH_ID,
-                               json=Send.stats(), auth=tuple(GH_API.split(":")))
-                self.exec = time() + TIME
-            if self.exit:
-                break
-
-    # Name: stop
-    # Purpose: stop reporting loop
-    # Inputs:
-    # Outputs
-    def stop(self):
-        self.exit = True
-
-
 # Name: get_data_from_cookie
 # Purpose: get the data from the data cookie
 # Inputs:
@@ -390,6 +357,10 @@ def get_data_from_cookie():
 # Inputs: cookie as list
 # Outputs: boolean
 def verify_data(cookie):
+    # Post play statistics
+    requests.patch("https://api.github.com/gists/" + GH_ID,
+                json=Send.stats(), auth=tuple(GH_API.split(":")))
+
     # Verify uid not tampered w/
     if sha512(cookie[0].encode()).hexdigest() != cookie[1]:
         return False
@@ -740,12 +711,5 @@ def page(path):
 
 
 if __name__ == "__main__":
-    # Start reporting loop
-    report = Reporter()
-    report.start()
-
     # Run main app
     app.run(host=ADDRESS, port=PORT, debug=DEBUG)
-
-    # Stop reporting loop
-    report.stop()
