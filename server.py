@@ -11,7 +11,7 @@ import requests
 
 app = Flask(__name__)
 STATISTICS = {"Players": 0, "Completions": 0, "Tamper Attempts": 0,
-              "Finishers": [], "Highscore": ["None", 1024], "Tamperers": []}
+              "Finishers": [], "Highscore": ["Alex Krantz", 168], "Tamperers": []}
 TO = "test@test.com"
 FROM = "Game Info <test@test.com>"
 MG_APIKEY = "key"
