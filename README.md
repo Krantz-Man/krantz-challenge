@@ -35,9 +35,13 @@ Before you run `server.py`, edit the following variables to match your desired c
 | DEBUG               | True            | Boolean | Run flask in debug mode or not                         |
 | TESTING             | False           | Boolean | Add override for answers in testing                    |
 | DEV                 | ""              | String  | prefix of the final name before the .html              |
-| DATABASE            | "data.db"       | String  | Database to use                                        |
 | DOMAIN              | "test.com"      | String  | Mailgun registered domain to send from                 |
-| TIME                | 900             | Integer | Amount of time between statistics reporting            |
+| DATABASE_HOST       | "127.0.0.1"     | String  | IP address where the MySQL database is hosted          |
+| DATABASE_PORT       | "3306"          | String  | Port on server where MySQL server is running           |
+| DATABASE_USER       | "username"      | String  | Username for the MySQL user                            |
+| DATABASE_PASS       | "password"      | String  | Password for the MySQL user                            |
+| DATABASE_DATABASE   | "game"          | String  | Database to store everything on the MySQL server       |
+| DATABASE_OPTIONS    | ""              | String  | Database connection options (ex. SSL)                  |
 
 Type the following into the terminal (Linux/MacOS) or command prompt (Windows): `python3 server.py`
 
