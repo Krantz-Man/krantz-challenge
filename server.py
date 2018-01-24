@@ -2,11 +2,11 @@ from flask import Flask, make_response, request, redirect, url_for, render_templ
 from flask_sqlalchemy import SQLAlchemy
 from os import urandom
 from binascii import hexlify
-from random import choice, shuffle
-from time import time, strftime
-from hashlib import sha512
-import json
-import requests
+from random import choice as choose_random, shuffle as shuffle_list
+from time import time, strftime as format_time
+from hashlib import sha512 as sha512_encode
+from json import loads as load_json, dumps as export_json
+from requests import post, patch
 
 ##### Begin Options #####
 TO = "test@test.com"
@@ -81,7 +81,7 @@ class Send(object):
     @staticmethod
     def stats():
         # Format finishers
-        finishers = "# Finishers\n###### Updated On: " + strftime("%m-%d-%Y %H:%M:%S") + \
+        finishers = "# Finishers\n###### Updated On: " + format_time("%m-%d-%Y %H:%M:%S") + \
                     "\n\nNumber | Name | Email | Time\n------ | ---- | ----- | ----\n"
         for i, finisher in enumerate(STATISTICS["Finishers"]):
             finishers += str(i + 1) + " | "
@@ -90,14 +90,14 @@ class Send(object):
             finishers += str(finisher["time"]) + "\n"
 
         # Format tamperers
-        tamperers = "# Tamperers\n###### Updated On: " + strftime("%m-%d-%Y %H:%M:%S") + \
+        tamperers = "# Tamperers\n###### Updated On: " + format_time("%m-%d-%Y %H:%M:%S") + \
                     "\n\nNumber | Name | Email\n------ | ---- | -----\n"
         for i, tamperer in enumerate(STATISTICS["Tamperers"]):
             tamperers += str(i + 1) + " | "
             tamperers += tamperer["name"] + " | "
             tamperers += tamperer["email"] + "\n"
 
-        generic = "# Generic Stats\n###### Updated on: " + strftime("%m-%d-%Y %H:%M:%S") + \
+        generic = "# Generic Stats\n###### Updated on: " + format_time("%m-%d-%Y %H:%M:%S") + \
             "\n\nTotal Players: " + str(STATISTICS["Players"]) + \
             "\n\nTotal Completions: " + str(STATISTICS["Completions"]) + \
             "\n\nAttempted Tampers: " + str(STATISTICS["Tamper Attempts"]) + \
@@ -129,10 +129,10 @@ class Send(object):
     def finisher(player, hs=False):
         # Get puzzles
         puzzles = ""
-        for i, p in enumerate(json.loads(player[1])):
+        for i, p in enumerate(load_json(player[1])):
             puzzles += "\t\t" + str(i + 1) + ": " + p + "\n"
 
-        body = "New Finisher on " + strftime("%m-%d-%Y %H:%M:%S") + \
+        body = "New Finisher on " + format_time("%m-%d-%Y %H:%M:%S") + \
             ":\n\tName: " + STATISTICS["Finishers"][len(STATISTICS["Finishers"]) - 1]["name"] + ",\n" + \
             "\tEmail: " + STATISTICS["Finishers"][len(STATISTICS["Finishers"]) - 1]["email"] + ",\n" + \
             "\tTime: " + str(STATISTICS["Finishers"][len(STATISTICS["Finishers"]) - 1]["time"]) + " seconds\n" + \
@@ -147,7 +147,7 @@ class Send(object):
              "subject": "Krantz's Challenge: New Finisher",
              "text": body
              }
-        return requests.post("https://api.mailgun.net/v3/" + DOMAIN + "/messages", auth=a, data=d)
+        return post("https://api.mailgun.net/v3/" + DOMAIN + "/messages", auth=a, data=d)
 
     # Name: tamperer
     # Purpose: send stats of new tamperer
@@ -155,7 +155,7 @@ class Send(object):
     # Outputs: status code
     @staticmethod
     def tamperer():
-        body = "New Tamperer on " + strftime("%m-%d-%Y %H:%M:%S") + \
+        body = "New Tamperer on " + format_time("%m-%d-%Y %H:%M:%S") + \
             ":\n\tName: " + STATISTICS["Tamperers"][len(STATISTICS["Tamperers"]) - 1]["name"] + ",\n" + \
             "\tEmail: " + STATISTICS["Tamperers"][len(STATISTICS["Tamperers"]) - 1]["email"] + ",\n" + \
             "Contact this person to find out the bug."
@@ -165,7 +165,7 @@ class Send(object):
              "subject": "Krantz's Challenge: New Tamperer",
              "text": body
              }
-        return requests.post("https://api.mailgun.net/v3/" + DOMAIN + "/messages", auth=a, data=d)
+        return post("https://api.mailgun.net/v3/" + DOMAIN + "/messages", auth=a, data=d)
 
 
 # Name: gen_puzzles
@@ -177,10 +177,10 @@ def gen_puzzles():
     pids = []
 
     while len(pids) != POSSIBLE_COMPLETED:
-        pid = choice(all_ids)
+        pid = choose_random(all_ids)
         if pid not in pids:
             pids.append(pid)
-        shuffle(all_ids)
+        shuffle_list(all_ids)
 
     return pids
 
@@ -202,11 +202,11 @@ def get_data_from_cookie():
 # Outputs: boolean
 def verify_data(cookie):
     # Post play statistics
-    requests.patch("https://api.github.com/gists/" + GH_ID,
+    patch("https://api.github.com/gists/" + GH_ID,
                 json=Send.stats(), auth=tuple(GH_API.split(":")))
 
     # Verify uid not tampered w/
-    if sha512(cookie[0].encode()).hexdigest() != cookie[1]:
+    if sha512_encode(cookie[0].encode()).hexdigest() != cookie[1]:
         return False
 
     # Verify uid matches on in database
@@ -235,12 +235,12 @@ def create_user():
     c_pid = pids[0]
 
     # Save to database
-    user = UserData(id=uid, pages=json.dumps(pids), current=c_pid, start=time_start)
+    user = UserData(id=uid, pages=export_json(pids), current=c_pid, start=time_start)
     db.session.add(user)
     db.session.commit()
 
     # Return string to go in cookie
-    return uid + "." + sha512(uid.encode()).hexdigest()
+    return uid + "." + sha512_encode(uid.encode()).hexdigest()
 
 
 # Name: index
@@ -362,7 +362,7 @@ def finish():
         Send.tamperer()
 
         # Load tamper data
-        tamper = [POSSIBLE_COMPLETED, player.complete, json.loads(player.pages).index(player.current) + 1]
+        tamper = [POSSIBLE_COMPLETED, player.complete, load_json(player.pages).index(player.current) + 1]
 
         # Render 'finish'
         resp = make_response(render_template("finish" + DEV + ".html", name=name,
@@ -439,7 +439,7 @@ def puzzle():
     player = UserData.query.filter_by(id=cookie[0]).first()
     data = Puzzles.query.filter_by(id=player.current).first()
     return render_template("puzzle" + DEV + ".html", title=data.title, prompt=data.prompt,
-                           number=json.loads(player.pages).index(player.current) + 1)
+                           number=load_json(player.pages).index(player.current) + 1)
 
 
 # Name: check
@@ -480,13 +480,13 @@ def check():
         player = UserData.query(cookie[0])
 
         # Check if finished
-        if json.loads(player[1])[POSSIBLE_COMPLETED - 1] == player[2] and player[3] == POSSIBLE_COMPLETED:
+        if load_json(player[1])[POSSIBLE_COMPLETED - 1] == player[2] and player[3] == POSSIBLE_COMPLETED:
             # Set end time & redirect to end page
             UserData.update(cookie[0], time_end=int(time()))
             return redirect(url_for("finish"))
 
         # Update player's current puzzle
-        curr_puzzle = json.loads(player[1])[json.loads(player[1]).index(player[2]) + 1]
+        curr_puzzle = load_json(player[1])[load_json(player[1]).index(player[2]) + 1]
         UserData.update(cookie[0], current=curr_puzzle)
 
         # Redirect to new puzzle
@@ -525,8 +525,8 @@ def check():
     player = UserData.query(cookie[0])
 
     # Check if value mismatch
-    if (json.loads(player[1])[POSSIBLE_COMPLETED - 1] != player[2] and player[3] == POSSIBLE_COMPLETED) \
-            or (json.loads(player[1])[POSSIBLE_COMPLETED - 1] == player[2] and player[3] != POSSIBLE_COMPLETED):
+    if (load_json(player[1])[POSSIBLE_COMPLETED - 1] != player[2] and player[3] == POSSIBLE_COMPLETED) \
+            or (load_json(player[1])[POSSIBLE_COMPLETED - 1] == player[2] and player[3] != POSSIBLE_COMPLETED):
         # Update tampered value
         UserData.update(cookie[0], tampered=1)
 
@@ -536,13 +536,13 @@ def check():
             return redirect(url_for("finish"))
 
     # Check if finished
-    elif json.loads(player[1])[POSSIBLE_COMPLETED - 1] == player[2] and player[3] == POSSIBLE_COMPLETED:
+    elif load_json(player[1])[POSSIBLE_COMPLETED - 1] == player[2] and player[3] == POSSIBLE_COMPLETED:
         # Set end time & redirect to end page
         UserData.update(cookie[0], time_end=int(time()))
         return redirect(url_for("finish"))
 
     # Update player's current puzzle
-    curr_puzzle = json.loads(player[1])[json.loads(player[1]).index(player[2]) + 1]
+    curr_puzzle = load_json(player[1])[load_json(player[1]).index(player[2]) + 1]
     UserData.update(cookie[0], current=curr_puzzle)
 
     # Redirect to next puzzle
