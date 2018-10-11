@@ -1,6 +1,6 @@
 from flask import Flask, make_response, request, redirect, url_for, render_template
 from flask_sqlalchemy import SQLAlchemy
-from os import urandom
+from os import urandom, getenv
 from binascii import hexlify
 from random import choice as choose_random, shuffle as shuffle_list
 from time import time, strftime as format_time
@@ -9,28 +9,22 @@ from json import loads as load_json, dumps as export_json
 from requests import post, patch
 
 ##### Begin Options #####
-TO = "test@test.com"
-FROM = "Game Info <test@test.com>"
-MG_APIKEY = "key"
-GH_API = "username:key"
-GH_ID = "id"
-POSSIBLE_COMPLETED = 4
-ADDRESS = "127.0.0.1"
-PORT = 5000
-DEBUG = False
-TESTING = False
-DEV = ""
-DOMAIN = "test.com"
-DATABASE_HOST = "ip"
-DATABASE_PORT = "port"
-DATABASE_USER = "username"
-DATABASE_PASS = "password"
-DATABASE_DATABASE = "game"
-DATABASE_OPTIONS = ""
+TO = getenv("TO")
+FROM = getenv("FROM")
+MG_APIKEY = getenv("MG_APIKEY")
+GH_API = getenv("GH_API")
+GH_ID = getenv("GH_ID")
+POSSIBLE_COMPLETED = int(getenv("POSSIBLE_COMPLETED"))
+ADDRESS = getenv("ADDRESS")
+PORT = int(getenv("PORT"))
+DEBUG = bool(getenv("DEBUG"))
+TESTING = bool(getenv("TESTING"))
+DEV = getenv("DEV")
+DOMAIN = getenv("DOMAIN")
 ##### End Options #####
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://" + DATABASE_USER + ":" + DATABASE_PASS + "@" + DATABASE_HOST + ":" + DATABASE_PORT + "/" + DATABASE_DATABASE + "?" + DATABASE_OPTIONS
+app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 STATISTICS = {"Players": 0, "Completions": 0, "Tamper Attempts": 0,

@@ -115,3 +115,4 @@ venv.bak/
 data.db
 pages.txt
 values.txt
+env.sh
